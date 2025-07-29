@@ -15,8 +15,8 @@ public class Budget {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @DecimalMin(value = "0.01", message = "The limit must be greater than 0!")
-    private BigDecimal limit;
+    @DecimalMin(value = "0.01", message = "The limit amount must be greater than 0!")
+    private BigDecimal limitAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

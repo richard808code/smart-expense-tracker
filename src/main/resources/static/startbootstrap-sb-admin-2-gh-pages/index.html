@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Smart Expense Tracker</title>
+
+    <!-- SB Admin 2 CSS -->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet"/>
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Smart Expense</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0"/>
+
+        <li class="nav-item active" id="nav-item-dashboard">
+            <a class="nav-link" href="#"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a>
+        </li>
+
+        <hr class="sidebar-divider"/>
+
+        <li class="nav-item" id="nav-item-users">
+            <a class="nav-link" href="#"><i class="fas fa-fw fa-user"></i><span>Users</span></a>
+        </li>
+
+        <li class="nav-item" id="nav-item-budgets">
+            <a class="nav-link" href="#"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Budgets</span></a>
+        </li>
+
+        <li class="nav-item" id="nav-item-categories">
+            <a class="nav-link" href="#"><i class="fas fa-fw fa-list"></i><span>Categories</span></a>
+        </li>
+
+        <li class="nav-item" id="nav-item-transactions">
+            <a class="nav-link" href="#"><i class="fas fa-fw fa-exchange-alt"></i><span>Transactions</span></a>
+        </li>
+
+        <hr class="sidebar-divider d-none d-md-block"/>
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper (správně uvnitř #wrapper) -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <div class="container-fluid py-4">
+                <div id="dashboard-section" style="display:none;">
+                    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+                    <p>This is the Dashboard placeholder content.</p>
+                </div>
+
+                <div id="users-section" style="display:none;">
+                    <h1 class="h3 mb-4 text-gray-800">Users</h1>
+                    <p>This is the Users section placeholder content.</p>
+                </div>
+
+                <div id="budgets-section" style="display:none;">
+                    <h1 class="h3 mb-4 text-gray-800">Budgets</h1>
+                    <p>This is the Budgets section placeholder content.</p>
+                </div>
+
+                <div id="categories-section" style="display:none;">
+                    <h1 class="h3 mb-4 text-gray-800">Categories</h1>
+                    <p>This is the Categories section placeholder content.</p>
+                </div>
+
+                <div id="transactions-section" style="display:none;">
+                    <h1 class="h3 mb-4 text-gray-800">Transactions</h1>
+                    <p>This is the Transactions section placeholder content.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> <!-- konec #wrapper -->
+
+<!-- JS -->
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="js/sb-admin-2.min.js"></script>
+
+<script>
+    function showSection(sectionId) {
+        const sections = ['dashboard-section', 'users-section', 'budgets-section', 'categories-section', 'transactions-section'];
+        const navItems = ['nav-item-dashboard', 'nav-item-users', 'nav-item-budgets', 'nav-item-categories', 'nav-item-transactions'];
+
+        sections.forEach(id => {
+            document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
+        });
+
+        navItems.forEach(navId => {
+            const navItem = document.getElementById(navId);
+            navItem.classList.toggle('active', navId === 'nav-item-' + sectionId.split('-')[0]);
+        });
+    }
+
+    document.querySelectorAll('#accordionSidebar .nav-link').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const text = link.querySelector('span').textContent.trim().toLowerCase();
+            switch (text) {
+                case 'dashboard': showSection('dashboard-section'); break;
+                case 'users': showSection('users-section'); break;
+                case 'budgets': showSection('budgets-section'); break;
+                case 'categories': showSection('categories-section'); break;
+                case 'transactions': showSection('transactions-section'); break;
+            }
+        });
+    });
+
+    // Show dashboard by default
+    showSection('dashboard-section');
+</script>
+</body>
+</html>

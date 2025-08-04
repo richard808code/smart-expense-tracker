@@ -41,8 +41,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .map(existing -> {
                     existing.setUsername(updatedUser.getUsername());
-                    existing.setEmail(updatedUser.getEmail());
-                    existing.setPassword(updatedUser.getPassword());
                     return userRepository.save(existing);
                 })
                 .orElse(null);

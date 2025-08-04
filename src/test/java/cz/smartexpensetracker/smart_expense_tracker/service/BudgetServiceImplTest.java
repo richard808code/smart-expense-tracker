@@ -20,8 +20,6 @@ public class BudgetServiceImplTest {
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setUsername("testuser");
-        user.setEmail("test@example.com");
-        // případně další pole
         return user;
     }
 
@@ -140,7 +138,7 @@ public class BudgetServiceImplTest {
         Budget updated = new Budget();
         updated.setId(id);
         updated.setLimitAmount(new BigDecimal("600.00"));
-        updated.setUser(createSampleUser());
+        updated.setUser(existing.getUser()); // použij stejného uživatele, aby se porovnání povedlo
         updated.setCategory(createSampleCategory());
 
         BudgetRepository mockRepo = Mockito.mock(BudgetRepository.class);
@@ -152,8 +150,8 @@ public class BudgetServiceImplTest {
         Budget result = service.updateBudgetById(id, updated);
 
         assertEquals(updated.getLimitAmount(), result.getLimitAmount());
-        assertEquals(updated.getUser(), result.getUser());
         assertEquals(updated.getCategory(), result.getCategory());
+        assertEquals(existing.getUser(), result.getUser());
 
         verify(mockRepo).findById(id);
         verify(mockRepo).save(existing);

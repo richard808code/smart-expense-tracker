@@ -21,14 +21,6 @@ public class User {
     @NotBlank(message = "You have to enter an username!")
     private String username;
 
-    @Email(message = "You have to enter a valid e-mail address!")
-    @NotBlank(message = "You have to enter an e-mail address!")
-    private String email;
-
-    @NotBlank(message = "You have to enter a password!")
-    @Size(min = 6, message = "Password must have at least 6 characters!")
-    private String password;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 

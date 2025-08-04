@@ -18,8 +18,6 @@ public class UserServiceImplTest {
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setUsername("testuser");
-        user.setEmail("test@example.com");
-        user.setPassword("hashed-password");
         return user;
     }
 
@@ -111,8 +109,6 @@ public class UserServiceImplTest {
 
         User updated = new User();
         updated.setUsername("newname");
-        updated.setEmail("new@example.com");
-        updated.setPassword("newpassword");
 
         UserRepository mockRepo = Mockito.mock(UserRepository.class);
         when(mockRepo.findById(id)).thenReturn(Optional.of(existing));
@@ -123,8 +119,6 @@ public class UserServiceImplTest {
         User result = service.updateUserById(id, updated);
 
         assertEquals("newname", result.getUsername());
-        assertEquals("new@example.com", result.getEmail());
-        assertEquals("newpassword", result.getPassword());
 
         verify(mockRepo).findById(id);
         verify(mockRepo).save(existing);

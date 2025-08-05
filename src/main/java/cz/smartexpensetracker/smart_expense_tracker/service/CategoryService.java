@@ -12,6 +12,8 @@ public interface CategoryService {
 
     Category getCategoryById(UUID id);
 
+    List<Category> getCategoriesByUserId(UUID userId);
+
     void deleteCategoryById(UUID id);
 
     Category updateCategoryById(UUID id, Category category);

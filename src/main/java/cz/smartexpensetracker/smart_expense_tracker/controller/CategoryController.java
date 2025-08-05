@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
@@ -30,6 +31,11 @@ public class CategoryController {
         return category != null ? ResponseEntity.ok(category) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/user/{userId}")
+    public List<Category> getCategoriesByUserId(@PathVariable UUID userId) {
+        return categoryService.getCategoriesByUserId(userId);
+    }
+
     @PostMapping
     public ResponseEntity<Category> addCategory(@Valid @RequestBody Category category) {
         Category createdCategory = categoryService.createCategory(category);
@@ -47,5 +53,6 @@ public class CategoryController {
         categoryService.deleteCategoryById(id);
         return ResponseEntity.noContent().build();
     }
+
 
 }

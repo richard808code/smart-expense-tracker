@@ -43,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
                     existing.setAmount(updatedTransaction.getAmount());
                     existing.setDescription(updatedTransaction.getDescription());
                     existing.setDate(updatedTransaction.getDate());
-                    existing.setCategory(updatedTransaction.getCategory());
+                    existing.setBudget(updatedTransaction.getBudget());
                     return transactionRepository.save(existing);
                 })
                 .orElse(null);

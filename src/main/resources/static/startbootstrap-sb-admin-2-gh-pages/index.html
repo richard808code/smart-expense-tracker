@@ -90,7 +90,43 @@
 
                 <div id="budgets-section" style="display:none;">
                     <h1 class="h3 mb-4 text-gray-800">Budgets</h1>
-                    <p>This is the Budgets section placeholder content.</p>
+
+                    <!-- Add Budget Form -->
+                    <div id="add-budget-form" style="margin-bottom: 20px;">
+                        <input type="text" id="new-budget-name" placeholder="Budget name"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                        <input type="number" id="new-budget-limit" placeholder="Budget limit"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                        <select id="budget-category" class="form-control mb-2"
+                                style="max-width: 300px; display: inline-block;"></select>
+                        <button id="add-budget-button" class="btn btn-primary mb-3" onclick="addBudget()">Add Budget</button>
+                    </div>
+
+                    <!-- Edit Budget Form -->
+                    <div id="edit-budget-form" style="display:none; margin-bottom: 20px;">
+                        <input type="text" id="edit-budget-name" placeholder="Budget name"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                        <input type="number" id="edit-budget-limit" placeholder="Budget limit"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                        <select id="edit-budget-category" class="form-control mb-2"
+                                style="max-width: 300px; display: inline-block;"></select>
+                        <button class="btn btn-success" onclick="submitEditBudget()">Save</button>
+                        <button class="btn btn-secondary" onclick="cancelEditBudget()">Cancel</button>
+                    </div>
+
+                    <!-- Budgets Table -->
+                    <table class="table table-bordered" id="budgets-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Budget Name</th>
+                            <th>Limit</th>
+                            <th>Category Name</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
 
                 <div id="categories-section" style="display: none;">
@@ -137,20 +173,30 @@
 <script src="js/sb-admin-2.min.js"></script>
 
 <script>
-    function showSection(sectionId) {
-        const sections = ['dashboard-section', 'users-section', 'budgets-section', 'categories-section', 'transactions-section'];
-        const navItems = ['nav-item-dashboard', 'nav-item-users', 'nav-item-budgets', 'nav-item-categories', 'nav-item-transactions'];
+    // Sekce a navigační položky
+    const sections = ['dashboard-section', 'users-section', 'budgets-section', 'categories-section', 'transactions-section'];
+    const navItems = ['nav-item-dashboard', 'nav-item-users', 'nav-item-budgets', 'nav-item-categories', 'nav-item-transactions'];
 
+    let users = [];
+    let categories = [];
+    let budgets = [];
+    let currentUserId = localStorage.getItem('currentUserId') || null;
+
+    let editingUserId = null;
+    let editingCategoryId = null;
+    let editingBudgetId = null;
+
+    // Zobrazení požadované sekce
+    function showSection(sectionId) {
         sections.forEach(id => {
             document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
         });
-
         navItems.forEach(navId => {
-            const navItem = document.getElementById(navId);
-            navItem.classList.toggle('active', navId === 'nav-item-' + sectionId.split('-')[0]);
+            document.getElementById(navId).classList.toggle('active', navId === 'nav-item-' + sectionId.split('-')[0]);
         });
     }
 
+    // Nastavení posluchačů kliknutí v sidebaru
     document.querySelectorAll('#accordionSidebar .nav-link').forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
@@ -165,6 +211,7 @@
                     break;
                 case 'budgets':
                     showSection('budgets-section');
+                    loadBudgets();
                     break;
                 case 'categories':
                     showSection('categories-section');
@@ -177,43 +224,38 @@
         });
     });
 
-    let users = [];
+    // --- USERS ---
 
     async function loadUsers() {
         try {
             const response = await fetch('http://localhost:8080/api/users');
             users = await response.json();
 
-            const tableBody = document.querySelector('#users-table tbody');
-            tableBody.innerHTML = '';
+            const tbody = document.querySelector('#users-table tbody');
+            tbody.innerHTML = '';
 
             users.forEach(user => {
                 const safeUsername = user.username.replace(/'/g, "\\'");
                 const row = document.createElement('tr');
                 row.innerHTML = `
-            <td>${user.id}</td>
-            <td>${user.username}</td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Delete</button>
-                <button onclick="editUser('${user.id}', '${safeUsername}')">Edit</button>
-                <button onclick="changeCurrentUser('${user.id}')">Select</button>
-            </td>
-        `;
-                tableBody.appendChild(row);
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Delete</button>
+                        <button onclick="editUser('${user.id}', '${safeUsername}')">Edit</button>
+                        <button onclick="changeCurrentUser('${user.id}')">Select</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
 
-
             if (!currentUserId || !users.some(u => u.id == currentUserId)) {
-                if (users.length > 0) {
-                    currentUserId = users[0].id;
-                    localStorage.setItem('currentUserId', currentUserId);
-                } else {
-                    currentUserId = null;
-                }
+                currentUserId = users.length ? users[0].id : null;
+                localStorage.setItem('currentUserId', currentUserId);
             }
 
             updateCurrentUserDisplay();
-
+            onCurrentUserChanged();
         } catch (error) {
             console.error('ERROR: Could not load the users:', error);
         }
@@ -227,9 +269,8 @@
             await fetch('http://localhost:8080/api/users', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username})
+                body: JSON.stringify({ username })
             });
-
             document.getElementById('new-user-username').value = '';
             loadUsers();
         } catch (error) {
@@ -241,31 +282,26 @@
         if (!confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            await fetch(`http://localhost:8080/api/users/${id}`, {
-                method: 'DELETE'
-            });
-
-            loadUsers(); // reload users
+            await fetch(`http://localhost:8080/api/users/${id}`, { method: 'DELETE' });
+            loadUsers();
         } catch (error) {
             console.error('ERROR: Could not delete user:', error);
         }
     }
 
-    let editingUserId = null;
-
-    function editUser(id, currentUsername) {
+    function editUser(id, username) {
         editingUserId = id;
-        document.getElementById('edit-user-username').value = currentUsername;
+        document.getElementById('edit-user-username').value = username;
         document.getElementById('edit-user-form').style.display = 'block';
         document.getElementById('new-user-username').style.display = 'none';
-        document.getElementById('add-user-button').style.display = 'none'; // přidat schování tlačítka
+        document.getElementById('add-user-button').style.display = 'none';
     }
 
     function cancelEdit() {
         editingUserId = null;
         document.getElementById('edit-user-form').style.display = 'none';
         document.getElementById('new-user-username').style.display = 'block';
-        document.getElementById('add-user-button').style.display = 'inline-block'; // obnovit tlačítko
+        document.getElementById('add-user-button').style.display = 'inline-block';
     }
 
     async function submitEditUser() {
@@ -276,7 +312,7 @@
             await fetch(`http://localhost:8080/api/users/${editingUserId}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: newUsername})
+                body: JSON.stringify({ username: newUsername })
             });
             cancelEdit();
             loadUsers();
@@ -285,36 +321,26 @@
         }
     }
 
-    let currentUserId = localStorage.getItem('currentUserId') || null;
-
     function updateCurrentUserDisplay() {
         const user = users.find(u => u.id == currentUserId);
-        const displayElement = document.getElementById('current-username');
-        if (user) {
-            displayElement.textContent = user.username;
-        } else {
-            displayElement.textContent = 'None';
-        }
+        document.getElementById('current-username').textContent = user ? user.username : 'None';
     }
 
     function changeCurrentUser(id) {
         currentUserId = id;
         localStorage.setItem('currentUserId', id);
         updateCurrentUserDisplay();
-        // Když se změní currentUser, můžeš tu přidat volání loadCategories() a dalších.
-        loadCategories();
+        onCurrentUserChanged();
     }
 
-    // --- Categories ---
-
-    let categories = [];
-    let editingCategoryId = null;
+    // --- CATEGORIES ---
 
     async function loadCategories() {
         if (!currentUserId) {
-            document.querySelector('#categories-table tbody').innerHTML = '';
+            clearCategoriesUI();
             return;
         }
+
         try {
             const response = await fetch(`http://localhost:8080/api/categories/user/${currentUserId}`);
             categories = await response.json();
@@ -322,23 +348,47 @@
             const tbody = document.querySelector('#categories-table tbody');
             tbody.innerHTML = '';
 
-            categories.forEach(category => {
-                const safeName = category.name.replace(/'/g, "\\'");
+            categories.forEach(cat => {
+                const safeName = cat.name.replace(/'/g, "\\'");
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                <td>${category.id}</td>
-                <td>${category.name}</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category.id}')">Delete</button>
-                    <button onclick="editCategory('${category.id}', '${safeName}')">Edit</button>
-                </td>
-            `;
+                    <td>${cat.id}</td>
+                    <td>${cat.name}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.id}')">Delete</button>
+                        <button onclick="editCategory('${cat.id}', '${safeName}')">Edit</button>
+                    </td>
+                `;
                 tbody.appendChild(row);
             });
 
+            fillCategorySelects();
         } catch (error) {
             console.error('ERROR: Could not load categories:', error);
         }
+    }
+
+    function clearCategoriesUI() {
+        document.querySelector('#categories-table tbody').innerHTML = '';
+        document.getElementById('budget-category').innerHTML = '';
+        document.getElementById('edit-budget-category').innerHTML = '';
+    }
+
+    function fillCategorySelects() {
+        const addSelect = document.getElementById('budget-category');
+        const editSelect = document.getElementById('edit-budget-category');
+        addSelect.innerHTML = '';
+        editSelect.innerHTML = '';
+
+        categories.forEach(cat => {
+            const option1 = document.createElement('option');
+            option1.value = cat.id;
+            option1.textContent = cat.name;
+            addSelect.appendChild(option1);
+
+            const option2 = option1.cloneNode(true);
+            editSelect.appendChild(option2);
+        });
     }
 
     async function addCategory() {
@@ -349,7 +399,7 @@
             await fetch('http://localhost:8080/api/categories', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: name, user: { id: currentUserId } })
+                body: JSON.stringify({ name, user: { id: currentUserId } })
             });
             document.getElementById('new-category-name').value = '';
             loadCategories();
@@ -362,18 +412,16 @@
         if (!confirm('Are you sure you want to delete this category?')) return;
 
         try {
-            await fetch(`http://localhost:8080/api/categories/${id}`, {
-                method: 'DELETE'
-            });
+            await fetch(`http://localhost:8080/api/categories/${id}`, { method: 'DELETE' });
             loadCategories();
         } catch (error) {
             console.error('ERROR: Could not delete category:', error);
         }
     }
 
-    function editCategory(id, currentName) {
+    function editCategory(id, name) {
         editingCategoryId = id;
-        document.getElementById('edit-category-name').value = currentName;
+        document.getElementById('edit-category-name').value = name;
         document.getElementById('edit-category-form').style.display = 'block';
         document.getElementById('new-category-name').style.display = 'none';
         document.getElementById('add-category-button').style.display = 'none';
@@ -394,7 +442,7 @@
             await fetch(`http://localhost:8080/api/categories/${editingCategoryId}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name: newName})
+                body: JSON.stringify({ name: newName, user: { id: currentUserId } })
             });
             cancelEditCategory();
             loadCategories();
@@ -403,11 +451,145 @@
         }
     }
 
-    // Načti uživatele a nastav zobrazení při startu
+    // --- BUDGETS ---
+
+    async function loadBudgets() {
+        if (!currentUserId) {
+            clearBudgetsUI();
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`);
+            budgets = await response.json();
+
+            const tbody = document.querySelector('#budgets-table tbody');
+            tbody.innerHTML = '';
+
+            budgets.forEach(budget => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${budget.id}</td>
+                    <td>${budget.name}</td>
+                    <td>${budget.limitAmount}</td>
+                    <td>${budget.category?.name || ''}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteBudget('${budget.id}')">Delete</button>
+                        <button onclick="editBudget('${budget.id}', '${budget.name}', ${budget.limitAmount}, '${budget.category?.id || ''}')">Edit</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            fillCategorySelects(); // aktualizace selectů kategorií
+        } catch (error) {
+            console.error('ERROR: Could not load budgets:', error);
+        }
+    }
+
+    function clearBudgetsUI() {
+        document.querySelector('#budgets-table tbody').innerHTML = '';
+    }
+
+    async function addBudget() {
+        const name = document.getElementById('new-budget-name').value.trim();
+        const limitAmount = parseFloat(document.getElementById('new-budget-limit').value);
+        const categoryId = document.getElementById('budget-category').value;
+
+        if (!name || isNaN(limitAmount) || !categoryId || !currentUserId) {
+            alert('Please fill all budget fields correctly.');
+            return;
+        }
+
+        try {
+            await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    limitAmount,
+                    category: { id: categoryId },
+                    user: { id: currentUserId }
+                })
+            });
+            clearBudgetForm();
+            loadBudgets();
+        } catch (error) {
+            console.error('ERROR: Could not add budget:', error);
+        }
+    }
+
+    function clearBudgetForm() {
+        document.getElementById('new-budget-name').value = '';
+        document.getElementById('new-budget-limit').value = '';
+        document.getElementById('budget-category').selectedIndex = 0;
+    }
+
+
+    async function deleteBudget(id) {
+        if (!confirm('Are you sure you want to delete this budget?')) return;
+
+        try {
+            await fetch(`http://localhost:8080/api/budgets/${id}`, { method: 'DELETE' });
+            loadBudgets();
+        } catch (error) {
+            console.error('ERROR: Could not delete budget:', error);
+        }
+    }
+
+    function editBudget(id, name, limitAmount, categoryId) {
+        editingBudgetId = id;
+        document.getElementById('edit-budget-name').value = name;
+        document.getElementById('edit-budget-limit').value = limitAmount;
+        document.getElementById('edit-budget-category').value = categoryId;
+
+        document.getElementById('edit-budget-form').style.display = 'block';
+        document.getElementById('add-budget-form').style.display = 'none';
+    }
+
+    function cancelEditBudget() {
+        editingBudgetId = null;
+        document.getElementById('edit-budget-form').style.display = 'none';
+        document.getElementById('add-budget-form').style.display = 'block';
+    }
+
+    async function submitEditBudget() {
+        const name = document.getElementById('edit-budget-name').value.trim();
+        const limitAmount = parseFloat(document.getElementById('edit-budget-limit').value);
+        const categoryId = document.getElementById('edit-budget-category').value;
+
+        if (!name || isNaN(limitAmount) || !categoryId || !editingBudgetId) {
+            alert('Please fill all budget fields correctly.');
+            return;
+        }
+
+        try {
+            await fetch(`http://localhost:8080/api/budgets/${editingBudgetId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    limitAmount,
+                    category: { id: categoryId }
+                })
+            });
+            cancelEditBudget();
+            loadBudgets();
+        } catch (error) {
+            console.error('ERROR: Could not edit budget:', error);
+        }
+    }
+
+    // Volá se vždy po změně currentUserId
+    function onCurrentUserChanged() {
+        loadCategories();
+        loadBudgets();
+        fillCategorySelects();
+    }
+
     window.onload = () => {
         showSection('dashboard-section');
         loadUsers();
-        updateCurrentUserDisplay();
     };
 </script>
 </body>

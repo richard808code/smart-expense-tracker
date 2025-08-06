@@ -32,6 +32,11 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
+    public List<Budget> getBudgetsByUserId(UUID userId) {
+        return budgetRepository.findByUserId(userId);
+    }
+
+    @Override
     public void deleteBudgetById(UUID id) {
         budgetRepository.deleteById(id);
     }

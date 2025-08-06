@@ -1,6 +1,7 @@
 package cz.smartexpensetracker.smart_expense_tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
@@ -31,9 +32,9 @@ public class Budget {
     @JsonBackReference(value = "user-budgets")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
-    @JsonBackReference(value = "category-budgets")
+    @JsonIgnoreProperties("budgets")
     private Category category;
 
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)

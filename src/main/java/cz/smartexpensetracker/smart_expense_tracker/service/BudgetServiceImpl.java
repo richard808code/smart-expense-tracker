@@ -37,6 +37,11 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
+    public List<Budget> getBudgetsByUserIdWithCategory(UUID userId) {
+        return budgetRepository.findByUserIdWithCategory(userId);
+    }
+
+    @Override
     public void deleteBudgetById(UUID id) {
         budgetRepository.deleteById(id);
     }
@@ -45,6 +50,7 @@ public class BudgetServiceImpl implements BudgetService {
     public Budget updateBudgetById(UUID id, Budget updatedBudget) {
         return budgetRepository.findById(id)
                 .map(existing -> {
+                    existing.setName(updatedBudget.getName());
                     existing.setLimitAmount(updatedBudget.getLimitAmount());
                     existing.setCategory(updatedBudget.getCategory());
                     return budgetRepository.save(existing);

@@ -15,6 +15,8 @@ public interface BudgetService {
 
     List<Budget> getBudgetsByUserId(UUID userId);
 
+    List<Budget> getBudgetsByUserIdWithCategory(UUID userId);
+
     void deleteBudgetById(UUID id);
 
     Budget updateBudgetById(UUID id, Budget updatedBudget);

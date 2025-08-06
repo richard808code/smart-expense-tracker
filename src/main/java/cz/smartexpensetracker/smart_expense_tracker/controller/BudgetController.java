@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/budgets")
@@ -47,7 +46,7 @@ public class BudgetController {
 
     @GetMapping("/user/{userId}")
     public List<Budget> getBudgetsByUserId(@PathVariable UUID userId) {
-        return budgetService.getBudgetsByUserId(userId);
+        return budgetService.getBudgetsByUserIdWithCategory(userId);
     }
 
     @PutMapping("/{id}")
@@ -61,4 +60,5 @@ public class BudgetController {
         budgetService.deleteBudgetById(id);
         return ResponseEntity.noContent().build();
     }
+
 }

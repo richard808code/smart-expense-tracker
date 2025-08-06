@@ -22,7 +22,7 @@ public class Category {
     private String name;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "category-budgets")
+
     private List<Budget> budgets = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

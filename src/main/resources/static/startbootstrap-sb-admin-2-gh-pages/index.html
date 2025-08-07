@@ -159,8 +159,45 @@
 
                 <div id="transactions-section" style="display:none;">
                     <h1 class="h3 mb-4 text-gray-800">Transactions</h1>
-                    <p>This is the Transactions section placeholder content.</p>
+
+                    <!-- Add Transaction Form -->
+                    <div id="add-transaction-form" style="margin-bottom: 20px;">
+                        <input type="number" id="new-transaction-amount" placeholder="Amount"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                        <input type="text" id="new-transaction-description" placeholder="Description"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                        <select id="transaction-budget-select" class="form-control mb-2"
+                                style="max-width: 300px; display: inline-block;"></select>
+                        <button id="add-transaction-button" class="btn btn-primary mb-3">Add Transaction</button>
+                    </div>
+
+                    <!-- Edit Transaction Form -->
+                    <div id="edit-transaction-form" style="display:none; margin-bottom: 20px;">
+                        <input type="number" id="edit-transaction-amount" placeholder="Amount"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                        <input type="text" id="edit-transaction-description" placeholder="Description"
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                        <select id="edit-transaction-budget-select" class="form-control mb-2"
+                                style="max-width: 300px; display: inline-block;"></select>
+                        <button class="btn btn-success" onclick="submitEditTransaction()">Save</button>
+                        <button class="btn btn-secondary" onclick="cancelEditTransaction()">Cancel</button>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <table class="table table-bordered" id="transactions-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Amount</th>
+                            <th>Transaction Description</th>
+                            <th>Budget Name</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
+
 
             </div>
         </div>

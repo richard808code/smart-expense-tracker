@@ -1,6 +1,7 @@
 package cz.smartexpensetracker.smart_expense_tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -28,13 +29,12 @@ public class Transaction {
     @NotNull(message = "You have to specify the date!")
     private LocalDateTime date;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference(value = "user-transactions")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "budget_id", nullable = false)
-    @JsonBackReference(value = "budget-transactions")
     private Budget budget;
 }

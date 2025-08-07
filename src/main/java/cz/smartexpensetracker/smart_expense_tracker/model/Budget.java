@@ -27,7 +27,7 @@ public class Budget {
     @DecimalMin(value = "0.01", message = "The limit amount must be greater than 0!")
     private BigDecimal limitAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference(value = "user-budgets")
     private User user;
@@ -38,6 +38,6 @@ public class Budget {
     private Category category;
 
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "budget-transactions")
+    @JsonIgnoreProperties("budget")  // ignoruje zpětný odkaz na budget v Transaction při serializaci
     private List<Transaction> transactions = new ArrayList<>();
 }

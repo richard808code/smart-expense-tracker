@@ -16,4 +16,7 @@ public interface TransactionService {
     void deleteTransactionById(UUID id);
 
     Transaction updateTransactionById(UUID id, Transaction updatedTransaction);
+
+    List<Transaction> getTransactionsByUserId(UUID userId);
+
 }

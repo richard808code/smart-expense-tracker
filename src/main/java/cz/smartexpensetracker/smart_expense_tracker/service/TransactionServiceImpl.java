@@ -48,4 +48,11 @@ public class TransactionServiceImpl implements TransactionService {
                 })
                 .orElse(null);
     }
+
+    @Override
+    public List<Transaction> getTransactionsByUserId(UUID userId) {
+        return transactionRepository.findAllByUserIdWithBudget(userId);
+    }
+
+
 }

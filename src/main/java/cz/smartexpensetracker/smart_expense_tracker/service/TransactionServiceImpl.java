@@ -1,7 +1,9 @@
 package cz.smartexpensetracker.smart_expense_tracker.service;
 
-import cz.smartexpensetracker.smart_expense_tracker.repository.TransactionRepository;
+import cz.smartexpensetracker.smart_expense_tracker.model.Budget;
 import cz.smartexpensetracker.smart_expense_tracker.model.Transaction;
+import cz.smartexpensetracker.smart_expense_tracker.repository.BudgetRepository;
+import cz.smartexpensetracker.smart_expense_tracker.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final BudgetRepository budgetRepository;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, BudgetRepository budgetRepository) {
         this.transactionRepository = transactionRepository;
+        this.budgetRepository = budgetRepository;
     }
 
     @Override
@@ -43,7 +47,12 @@ public class TransactionServiceImpl implements TransactionService {
                     existing.setAmount(updatedTransaction.getAmount());
                     existing.setDescription(updatedTransaction.getDescription());
                     existing.setDate(updatedTransaction.getDate());
-                    existing.setBudget(updatedTransaction.getBudget());
+
+                    UUID budgetId = updatedTransaction.getBudget().getId();
+                    Budget budget = budgetRepository.findById(budgetId)
+                            .orElseThrow(() -> new RuntimeException("Budget not found"));
+                    existing.setBudget(budget);
+
                     return transactionRepository.save(existing);
                 })
                 .orElse(null);
@@ -53,6 +62,4 @@ public class TransactionServiceImpl implements TransactionService {
     public List<Transaction> getTransactionsByUserId(UUID userId) {
         return transactionRepository.findAllByUserIdWithBudget(userId);
     }
-
-
 }

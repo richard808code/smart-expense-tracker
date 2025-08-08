@@ -57,10 +57,19 @@ public class TransactionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Transaction> updateTransactionById(@PathVariable UUID id, @Valid @RequestBody Transaction transaction) {
+        if (transaction.getBudget() == null || transaction.getBudget().getId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        UUID budgetId = transaction.getBudget().getId();
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+
+        transaction.setBudget(budget);
+
         Transaction updatedTransaction = transactionService.updateTransactionById(id, transaction);
         return updatedTransaction != null ? ResponseEntity.ok(updatedTransaction) : ResponseEntity.notFound().build();
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Transaction> deleteTransactionById(@PathVariable UUID id) {
         transactionService.deleteTransactionById(id);

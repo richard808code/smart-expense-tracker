@@ -61,4 +61,10 @@ public class BudgetController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/remaining")
+    public ResponseEntity<List<Budget>> getRemainingBudgetsForUser(@RequestParam UUID userId) {
+        List<Budget> budgets = budgetService.getBudgetsWithRemainingForUser(userId);
+        return ResponseEntity.ok(budgets);
+    }
+
 }

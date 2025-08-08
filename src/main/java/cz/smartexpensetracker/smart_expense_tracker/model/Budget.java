@@ -2,7 +2,7 @@ package cz.smartexpensetracker.smart_expense_tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -38,6 +38,19 @@ public class Budget {
     private Category category;
 
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("budget")  // ignoruje zpětný odkaz na budget v Transaction při serializaci
+    @JsonIgnoreProperties("budget")
     private List<Transaction> transactions = new ArrayList<>();
+
+
+    @Transient
+    private double remainingAmount;
+
+    @JsonProperty
+    public double getRemainingAmount() {
+        return remainingAmount;
+    }
+
+    public void setRemainingAmount(double remainingAmount) {
+        this.remainingAmount = remainingAmount;
+    }
 }

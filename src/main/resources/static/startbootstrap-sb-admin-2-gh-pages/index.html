@@ -59,8 +59,18 @@
             <div class="container-fluid py-4">
 
                 <div id="dashboard-section">
-                    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
-                    <p>This is the Dashboard placeholder content.</p>
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Budget Limit Control</h6>
+                                </div>
+                                <div class="card-body" id="budget-progress-bars">
+                                    <!-- Progress bary se sem vloží dynamicky -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="users-section" style="display:none;">
@@ -163,7 +173,7 @@
                     <!-- Add Transaction Form -->
                     <div id="add-transaction-form" style="margin-bottom: 20px;">
                         <input type="number" id="new-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="-999999" step="0.01"/>
                         <input type="text" id="new-transaction-description" placeholder="Description"
                                class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
                         <select id="transaction-budget-select" class="form-control mb-2"
@@ -562,6 +572,8 @@
             });
             clearBudgetForm();
             loadBudgets();
+            await loadBudgetsForTransactionSelect('transaction-budget-select');
+            await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
         } catch (error) {
             console.error('ERROR: Could not add budget:', error);
         }
@@ -678,7 +690,7 @@
         const budgetId = document.getElementById('transaction-budget-select').value;
         const date = document.getElementById('new-transaction-date').value;
 
-        if (isNaN(amount) || amount <= 0 || description === '' || !date) {
+        if (isNaN(amount) || amount === 0 || description === '' || !date) {
             alert('Please fill all fields including date.');
             return;
         }
@@ -700,6 +712,7 @@
             transactions.push(newTransaction);
             renderTransactionsTable();
             clearAddTransactionForm();
+            loadBudgetsWithRemaining();
         } catch (e) {
             alert(e.message);
         }
@@ -798,41 +811,15 @@
 
     // --- Inicializace na začátku ---
     async function initTransactionsSection() {
-        // načti budgety do obou selectů
-        try {
-            const res = await fetch('/api/budgets');
-            budgets = await res.json();
-            renderBudgetOptions(document.getElementById('transaction-budget-select'));
-            renderBudgetOptions(document.getElementById('edit-transaction-budget-select'));
-        } catch (e) {
-            console.error('Failed to load budgets', e);
-        }
+        // načti budgety do obou selectů podle aktuálního uživatele
+        await loadBudgetsForTransactionSelect('transaction-budget-select');
+        await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
 
         await fetchTransactions();
 
         document.getElementById('add-transaction-button').onclick = addTransaction;
     }
 
-    async function loadBudgetsForTransactionSelect() {
-        if (!currentUserId) return;
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`);
-            const userBudgets = await response.json();
-
-            const select = document.getElementById('transaction-budget-select');
-            select.innerHTML = '';
-
-            userBudgets.forEach(budget => {
-                const option = document.createElement('option');
-                option.value = budget.id;
-                option.textContent = budget.name;
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('ERROR: Could not load budgets for transaction select:', error);
-        }
-    }
 
     async function loadBudgetsForTransactionSelect(selectId) {
         if (!currentUserId) return;
@@ -855,13 +842,63 @@
         }
     }
 
+    function renderBudgetProgressBars(budgets) {
+        const container = document.getElementById('budget-progress-bars');
+        container.innerHTML = '';
+
+        budgets.forEach(budget => {
+            const spent = budget.limitAmount - budget.remainingAmount;
+            const percent = Math.min((spent / budget.limitAmount) * 100, 100).toFixed(0);
+            const color = percent < 70 ? 'bg-success' : percent < 100 ? 'bg-warning' : 'bg-danger';
+
+            const progressBar = `
+      <h4 class="small font-weight-bold">
+        ${budget.name} — <small class="text-muted">${budget.category.name}</small>
+        <span class="float-right">
+          ${spent.toFixed(2)} Kč / ${budget.limitAmount.toFixed(2)} Kč
+        </span>
+      </h4>
+      <div class="progress mb-4">
+        <div class="progress-bar ${color}" role="progressbar"
+             style="width: ${percent}%" aria-valuenow="${percent}"
+             aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div>
+    `;
+
+            container.innerHTML += progressBar;
+        });
+    }
+
+    async function loadBudgetsWithRemaining() {
+        if (!currentUserId) {
+            console.error('currentUserId není nastavený');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/budgets/remaining?userId=${currentUserId}`);
+            if (!response.ok) throw new Error('Chyba při načítání budgetů');
+            const budgets = await response.json();
+
+            console.log('Budgets with remaining:', budgets);
+            renderBudgetProgressBars(budgets);
+        } catch (error) {
+            console.error('Chyba:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadBudgetsWithRemaining();
+        setInterval(loadBudgetsWithRemaining, 10000);
+    });
+
     // Volá se vždy po změně currentUserId
     async function onCurrentUserChanged() {
         loadCategories();
         loadBudgets();
         fillCategorySelects();
-        await initTransactionsSection(); // tady se volá fetchTransactions
-        loadBudgetsForTransactionSelect();
+        await initTransactionsSection();  // tady načte i budgety do selectů
     }
 
     window.onload = async () => {

@@ -1,9 +1,14 @@
 package cz.smartexpensetracker.smart_expense_tracker.service;
 
 import cz.smartexpensetracker.smart_expense_tracker.model.Budget;
+import cz.smartexpensetracker.smart_expense_tracker.model.Transaction;
+import cz.smartexpensetracker.smart_expense_tracker.model.User;
 import cz.smartexpensetracker.smart_expense_tracker.repository.BudgetRepository;
+import cz.smartexpensetracker.smart_expense_tracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,8 +17,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
 
-    public BudgetServiceImpl(BudgetRepository budgetRepository) {
+    private final UserRepository userRepository;
+
+    public BudgetServiceImpl(BudgetRepository budgetRepository , UserRepository userRepository) {
         this.budgetRepository = budgetRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -56,5 +64,21 @@ public class BudgetServiceImpl implements BudgetService {
                     return budgetRepository.save(existing);
                 })
                 .orElse(null);
+    }
+
+    @Override
+    public List<Budget> getBudgetsWithRemainingForUser(UUID userId) {
+        List<Budget> budgets = budgetRepository.findByUserIdWithTransactions(userId);
+
+        for (Budget budget : budgets) {
+            BigDecimal totalSpent = budget.getTransactions().stream()
+                    .map(Transaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            double remaining = budget.getLimitAmount().subtract(totalSpent).doubleValue();
+            budget.setRemainingAmount(remaining);
+        }
+
+        return budgets;
     }
 }

@@ -45,7 +45,10 @@ public class TransactionController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         transaction.setUser(user);
 
-        // Načti Budget z DB podle ID v transaction.getBudget()
+        if (transaction.getBudget() == null || transaction.getBudget().getId() == null) {
+            throw new IllegalArgumentException("Budget or Budget ID must not be null");
+        }
+
         UUID budgetId = transaction.getBudget().getId();
         Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));

@@ -20,4 +20,6 @@ public interface BudgetService {
     void deleteBudgetById(UUID id);
 
     Budget updateBudgetById(UUID id, Budget updatedBudget);
+
+    List<Budget> getBudgetsWithRemainingForUser(UUID userId);
 }

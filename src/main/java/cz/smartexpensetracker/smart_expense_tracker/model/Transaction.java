@@ -20,7 +20,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @DecimalMin(value = "0.01", message = "The transaction amount must be greater than 0!")
+
     private BigDecimal amount;
 
     @NotBlank(message = "You have to enter a description!")

@@ -9,40 +9,46 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@CrossOrigin(origins = "*")
-@RestController
-@RequestMapping("/api/users")
+@CrossOrigin(origins = "*") // Allow all origins for CORS
+@RestController // Marks this class as a REST controller
+@RequestMapping("/api/users") // Base URL path for this controller
 public class UserController {
 
     private final UserService userService;
 
+    // Constructor injection of UserService
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    // GET endpoint to return all users
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
+    // GET endpoint to get a user by UUID, returns 404 if not found
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable UUID id) {
         User user = userService.getUserById(id);
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
+    // POST endpoint to create a new user
     @PostMapping
     public ResponseEntity<User> addUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.status(201).body(createdUser);
     }
 
+    // PUT endpoint to update an existing user by UUID
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUserById(@PathVariable UUID id,@Valid @RequestBody User user) {
+    public ResponseEntity<User> updateUserById(@PathVariable UUID id, @Valid @RequestBody User user) {
         User updatedUser = userService.updateUserById(id, user);
         return updatedUser != null ? ResponseEntity.ok(updatedUser) : ResponseEntity.notFound().build();
     }
 
+    // DELETE endpoint to delete a user by UUID
     @DeleteMapping("/{id}")
     public ResponseEntity<User> deleteUserById(@PathVariable UUID id) {
         userService.deleteUserById(id);

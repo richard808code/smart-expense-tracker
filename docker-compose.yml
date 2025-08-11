@@ -1,20 +1,20 @@
-version: '3.8'
+version: '3.8'  # Compose file version
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: smart-expense-mysql
+    image: mysql:8.0  # Use official MySQL 8.0 image
+    container_name: smart-expense-mysql  # Set container name for easier management
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: smart_expense_db
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
+      MYSQL_ROOT_PASSWORD: root  # Root user password for MySQL
+      MYSQL_DATABASE: smart_expense_db  # Initial database to create inside MySQL
+      MYSQL_USER: appuser  # Non-root user for the database
+      MYSQL_PASSWORD: apppass  # Password for the non-root user
     ports:
-      - "3306:3306"
+      - "3306:3306"  # Map MySQL default port from container to host for external access
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d
-    restart: unless-stopped
+      - mysql_data:/var/lib/mysql  # Persist database data in named Docker volume
+      - ./mysql-init:/docker-entrypoint-initdb.d  # Initialize DB with scripts on container start
+    restart: unless-stopped  # Automatically restart container unless explicitly stopped
 
 volumes:
-  mysql_data:
+  mysql_data:  # Named volume to persist MySQL data

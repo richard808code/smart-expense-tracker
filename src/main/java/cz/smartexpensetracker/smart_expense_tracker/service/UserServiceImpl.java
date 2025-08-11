@@ -16,26 +16,31 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
+    // Saves a new user to the database
     @Override
     public User createUser(User user) {
         return userRepository.save(user);
     }
 
+    // Retrieves a list of all users from the database
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    // Finds a user by their unique ID, returns null if not found
     @Override
     public User getUserById(UUID id) {
         return userRepository.findById(id).orElse(null);
     }
 
+    // Deletes a user by their ID
     @Override
     public void deleteUserById(UUID id) {
         userRepository.deleteById(id);
     }
 
+    // Updates an existing user's username, returns null if user not found
     @Override
     public User updateUserById(UUID id, User updatedUser) {
         return userRepository.findById(id)

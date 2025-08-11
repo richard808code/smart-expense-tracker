@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
+    // Finds all categories belonging to a specific user by user ID
     List<Category> findByUserId(UUID userId);
 }

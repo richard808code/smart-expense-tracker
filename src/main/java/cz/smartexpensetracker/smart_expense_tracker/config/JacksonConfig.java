@@ -14,18 +14,18 @@ public class JacksonConfig {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
 
-        // Modul pro Hibernate lazy loading kompatibilní s Jakarta EE
+        // Module for Hibernate lazy loading support compatible with Jakarta EE
         Hibernate5JakartaModule hibernateModule = new Hibernate5JakartaModule();
         hibernateModule.configure(Hibernate5JakartaModule.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS, true);
         mapper.registerModule(hibernateModule);
 
-        // Modul pro Java 8 date/time (LocalDateTime, LocalDate, atd.)
+        // Module for Java 8 date/time types (LocalDateTime, LocalDate, etc.)
         mapper.registerModule(new JavaTimeModule());
 
-        // Vypnutí serializace datumů jako timestampů, chceme ISO string
+        // Disable serialization of dates as timestamps; use ISO-8601 string format instead
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // Zabránění chybě při serializaci prázdných beanů
+        // Prevent failure on serializing empty beans
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         return mapper;

@@ -1,14 +1,30 @@
 spring:
   datasource:
+    # JDBC URL for connecting to the MySQL database, including parameters:
+    # - useSSL=false disables SSL connection for simplicity
+    # - allowPublicKeyRetrieval=true allows retrieval of the public key for authentication
+    # - serverTimezone=UTC sets the server timezone to avoid timezone issues
     url: jdbc:mysql://127.0.0.1:3306/smart_expense_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+
+    # Credentials for accessing the database
     username: appuser
     password: apppass
+
+    # MySQL JDBC driver class name
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
+      # Automatically update database schema based on entity definitions
       ddl-auto: update
+
+    # Enable logging of executed SQL statements for debugging
     show-sql: true
+
+    # Hibernate dialect optimized for MySQL databases
     database-platform: org.hibernate.dialect.MySQLDialect
+
   properties:
     hibernate:
+      # Format SQL queries in logs for better readability
       format_sql: true

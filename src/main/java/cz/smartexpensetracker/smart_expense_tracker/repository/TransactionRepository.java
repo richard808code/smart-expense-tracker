@@ -10,10 +10,8 @@ import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    List<Transaction> findByUserId(UUID userId);
-
-    List<Transaction> findAllByUserId(UUID userId);
-
+    // Finds all transactions for a specific user and fetches their associated budget in a single query
+    // Uses JOIN FETCH to avoid the N+1 select problem and load budget data eagerly
     @Query("SELECT t FROM Transaction t JOIN FETCH t.budget WHERE t.user.id = :userId")
     List<Transaction> findAllByUserIdWithBudget(@Param("userId") UUID userId);
 }

@@ -9,6 +9,15 @@
     <link href="css/sb-admin-2.min.css" rel="stylesheet"/>
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+
+    <style>
+        /* Reusable CSS class for consistent small inline form controls */
+        .form-inline-small {
+            max-width: 300px;
+            display: inline-block;
+            margin-right: 10px; /* slight margin between inline elements */
+        }
+    </style>
 </head>
 
 <body id="page-top">
@@ -66,7 +75,7 @@
                                     <h6 class="m-0 font-weight-bold text-primary">Budget Limit Control</h6>
                                 </div>
                                 <div class="card-body" id="budget-progress-bars">
-                                    <!-- Progress bary se sem vloží dynamicky -->
+                                    <!-- Progress bars will be inserted here dynamically -->
                                 </div>
                             </div>
                         </div>
@@ -104,22 +113,20 @@
                     <!-- Add Budget Form -->
                     <div id="add-budget-form" style="margin-bottom: 20px;">
                         <input type="text" id="new-budget-name" placeholder="Budget name"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                               class="form-control mb-2 form-inline-small"/>
                         <input type="number" id="new-budget-limit" placeholder="Budget limit"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
-                        <select id="budget-category" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
-                        <button id="add-budget-button" class="btn btn-primary mb-3" onclick="addBudget()">Add Budget</button>
+                               class="form-control mb-2 form-inline-small" min="0" step="0.01"/>
+                        <select id="budget-category" class="form-control mb-2 form-inline-small"></select>
+                        <button id="add-budget-button" class="btn btn-primary mb-3">Add Budget</button>
                     </div>
 
                     <!-- Edit Budget Form -->
                     <div id="edit-budget-form" style="display:none; margin-bottom: 20px;">
                         <input type="text" id="edit-budget-name" placeholder="Budget name"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                               class="form-control mb-2 form-inline-small"/>
                         <input type="number" id="edit-budget-limit" placeholder="Budget limit"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
-                        <select id="edit-budget-category" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
+                               class="form-control mb-2 form-inline-small" min="0" step="0.01"/>
+                        <select id="edit-budget-category" class="form-control mb-2 form-inline-small"></select>
                         <button class="btn btn-success" onclick="submitEditBudget()">Save</button>
                         <button class="btn btn-secondary" onclick="cancelEditBudget()">Cancel</button>
                     </div>
@@ -142,7 +149,6 @@
                 <div id="categories-section" style="display: none;">
                     <h2>Categories</h2>
 
-
                     <div>
                         <input type="text" id="new-category-name" placeholder="Category name" class="form-control mb-2" />
                         <button id="add-category-button" class="btn btn-primary mb-3" onclick="addCategory()">Add Category</button>
@@ -153,7 +159,6 @@
                         <button class="btn btn-success" onclick="submitEditCategory()">Save</button>
                         <button class="btn btn-secondary" onclick="cancelEditCategory()">Cancel</button>
                     </div>
-
 
                     <table id="categories-table" class="table table-striped mt-3">
                         <thead>
@@ -173,26 +178,24 @@
                     <!-- Add Transaction Form -->
                     <div id="add-transaction-form" style="margin-bottom: 20px;">
                         <input type="number" id="new-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="-999999" step="0.01"/>
+                               class="form-control mb-2 form-inline-small" min="-999999" step="0.01"/>
                         <input type="text" id="new-transaction-description" placeholder="Description"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
-                        <select id="transaction-budget-select" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
+                               class="form-control mb-2 form-inline-small"/>
+                        <select id="transaction-budget-select" class="form-control mb-2 form-inline-small"></select>
                         <input type="datetime-local" id="new-transaction-date"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" />
+                               class="form-control mb-2 form-inline-small" />
                         <button id="add-transaction-button" class="btn btn-primary mb-3">Add Transaction</button>
                     </div>
 
                     <!-- Edit Transaction Form -->
                     <div id="edit-transaction-form" style="display:none; margin-bottom: 20px;">
                         <input type="number" id="edit-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                               class="form-control mb-2 form-inline-small" min="0" step="0.01"/>
                         <input type="text" id="edit-transaction-description" placeholder="Description"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
-                        <select id="edit-transaction-budget-select" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
+                               class="form-control mb-2 form-inline-small"/>
+                        <select id="edit-transaction-budget-select" class="form-control mb-2 form-inline-small"></select>
                         <input type="datetime-local" id="edit-transaction-date"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" />
+                               class="form-control mb-2 form-inline-small" />
                         <button class="btn btn-success" onclick="submitEditTransaction()">Save</button>
                         <button class="btn btn-secondary" onclick="cancelEditTransaction()">Cancel</button>
                     </div>
@@ -203,8 +206,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Amount</th>
-                            <th>Transaction Description</th>
-                            <th>Budget Name</th>
+                            <th>Description</th>
+                            <th>Budget</th>
                             <th>Date</th>
                             <th>Actions</th>
                         </tr>
@@ -212,8 +215,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-
-
             </div>
         </div>
     </div>

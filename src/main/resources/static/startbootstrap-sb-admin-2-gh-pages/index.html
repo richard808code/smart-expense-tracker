@@ -81,7 +81,7 @@
                     <div id="edit-user-form" style="display:none; margin-bottom:15px;">
                         <input type="text" id="edit-user-username" class="form-control mb-2" />
                         <button class="btn btn-success" onclick="submitEditUser()">Save</button>
-                        <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                        <button class="btn btn-secondary" onclick="cancelEditUser()">Cancel</button>
                     </div>
 
                     <table class="table table-bordered" id="users-table">
@@ -225,151 +225,308 @@
 <script src="js/sb-admin-2.min.js"></script>
 
 <script>
-    // Sekce a navigační položky
+    // Sections and navigation Items elements
     const sections = ['dashboard-section', 'users-section', 'budgets-section', 'categories-section', 'transactions-section'];
     const navItems = ['nav-item-dashboard', 'nav-item-users', 'nav-item-budgets', 'nav-item-categories', 'nav-item-transactions'];
 
+
+    // "Local Cache" for FrontEnd
     let users = [];
     let categories = [];
     let budgets = [];
     let transactions = [];
+
+    //Save the currentUser in local storage for refreshing purposes
     let currentUserId = localStorage.getItem('currentUserId') || null;
 
+    // ID of the item that`s being edited
     let editingUserId = null;
     let editingCategoryId = null;
     let editingBudgetId = null;
     let editingTransactionId = null;
 
-    // Zobrazení požadované sekce
+    // Showing the chosen section and hiding the others
     function showSection(sectionId) {
+        // Validate sectionId type and existence in sections array
+        if (typeof sectionId !== 'string' || !sections.includes(sectionId)) {
+            console.warn(`showSection: Invalid sectionId "${sectionId}"`);
+            return;
+        }
+
+        // Show the chosen section and hide the others
         sections.forEach(id => {
-            document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = (id === sectionId) ? 'block' : 'none';
+            } else {
+                console.warn(`showSection: Element with id "${id}" not found in DOM.`);
+            }
         });
+
+        // Extract the prefix safely from sectionId
+        const prefix = sectionId.split('-')[0] || '';
+
+        // Highlight the active navigation item
         navItems.forEach(navId => {
-            document.getElementById(navId).classList.toggle('active', navId === 'nav-item-' + sectionId.split('-')[0]);
+            const navEl = document.getElementById(navId);
+            if (navEl) {
+                navEl.classList.toggle(
+                    'active',
+                    navId === 'nav-item-' + prefix
+                );
+            } else {
+                console.warn(`showSection: Navigation element with id "${navId}" not found in DOM.`);
+            }
         });
     }
 
-    // Nastavení posluchačů kliknutí v sidebaru
-    document.querySelectorAll('#accordionSidebar .nav-link').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            const sectionName = link.querySelector('span').textContent.trim().toLowerCase();
-            switch (sectionName) {
-                case 'dashboard':
-                    showSection('dashboard-section');
-                    break;
-                case 'users':
-                    showSection('users-section');
-                    loadUsers();
-                    break;
-                case 'budgets':
-                    showSection('budgets-section');
-                    loadBudgets();
-                    break;
-                case 'categories':
-                    showSection('categories-section');
-                    loadCategories();
-                    break;
-                case 'transactions':
-                    showSection('transactions-section');
-                    fetchTransactions();
-                    break;
-            }
+    // Listeners for the sidebar (with validation)
+    const sidebarLinks = document.querySelectorAll('#accordionSidebar .nav-link');
+
+    if (!sidebarLinks || sidebarLinks.length === 0) {
+        console.warn('Sidebar links not found');
+    } else {
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+
+                const span = link.querySelector('span');
+                if (!span) {
+                    console.warn('Sidebar link span element missing');
+                    return;
+                }
+
+                const sectionName = span.textContent?.trim().toLowerCase();
+                if (!sectionName) {
+                    console.warn('Sidebar link section name missing or empty');
+                    return;
+                }
+
+                switch (sectionName) {
+                    case 'dashboard':
+                        showSection('dashboard-section');
+                        break;
+                    case 'users':
+                        showSection('users-section');
+                        loadUsers();
+                        break;
+                    case 'budgets':
+                        showSection('budgets-section');
+                        loadBudgets();
+                        break;
+                    case 'categories':
+                        showSection('categories-section');
+                        loadCategories();
+                        break;
+                    case 'transactions':
+                        showSection('transactions-section');
+                        fetchTransactions();
+                        break;
+                    default:
+                        console.warn(`Unknown section name: ${sectionName}`);
+                }
+            });
         });
-    });
+    }
 
     // --- USERS ---
 
     async function loadUsers() {
         try {
+            // Fetch the list of users from the API
             const response = await fetch('http://localhost:8080/api/users');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Parse response JSON into the users array
             users = await response.json();
 
+            // Find the table body element where users will be displayed
             const tbody = document.querySelector('#users-table tbody');
-            tbody.innerHTML = '';
+            if (!tbody) {
+                console.warn('Table body for users not found');
+                return;
+            }
+            tbody.innerHTML = ''; // Clear existing rows
 
+            // For each user, create a table row with data and action buttons
             users.forEach(user => {
-                const safeUsername = user.username.replace(/'/g, "\\'");
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Delete</button>
-                        <button onclick="editUser('${user.id}', '${safeUsername}')">Edit</button>
-                        <button onclick="changeCurrentUser('${user.id}')">Select</button>
-                    </td>
-                `;
+
+                // Create cells for user ID and username
+                const tdId = document.createElement('td');
+                tdId.textContent = user.id;
+                const tdUsername = document.createElement('td');
+                tdUsername.textContent = user.username;
+
+                // Create actions cell with Delete, Edit, and Select buttons
+                const tdActions = document.createElement('td');
+
+                const btnDelete = document.createElement('button');
+                btnDelete.className = 'btn btn-danger btn-sm';
+                btnDelete.textContent = 'Delete';
+                btnDelete.addEventListener('click', () => deleteUser(user.id));
+
+                const btnEdit = document.createElement('button');
+                btnEdit.textContent = 'Edit';
+                btnEdit.addEventListener('click', () => editUser(user.id, user.username));
+
+                const btnSelect = document.createElement('button');
+                btnSelect.textContent = 'Select';
+                btnSelect.addEventListener('click', () => changeCurrentUser(user.id));
+
+                // Append buttons to the actions cell
+                tdActions.append(btnDelete, btnEdit, btnSelect);
+
+                // Append all cells to the row
+                row.append(tdId, tdUsername, tdActions);
+
+                // Append the row to the table body
                 tbody.appendChild(row);
             });
 
-            if (!currentUserId || !users.some(u => u.id == currentUserId)) {
-                currentUserId = users.length ? users[0].id : null;
+            // If currentUserId is not set or no longer valid, set it to first user ID or null
+            if (!currentUserId || !Array.isArray(users) || !users.some(u => u.id == currentUserId)) {
+                currentUserId = Array.isArray(users) && users.length ? users[0].id : null;
                 localStorage.setItem('currentUserId', currentUserId);
             }
 
+            // Update UI to reflect current user and notify other parts of app
             updateCurrentUserDisplay();
             onCurrentUserChanged();
+
         } catch (error) {
             console.error('ERROR: Could not load the users:', error);
         }
     }
 
     async function addUser() {
-        const username = document.getElementById('new-user-username').value.trim();
-        if (!username) return;
+        // Get and trim username input value
+        const usernameInput = document.getElementById('new-user-username');
+        const username = usernameInput ? usernameInput.value.trim() : '';
+
+        // Validate input is not empty
+        if (!username) {
+            alert('Username cannot be empty.');
+            return;
+        }
 
         try {
-            await fetch('http://localhost:8080/api/users', {
+            // Send POST request to add new user
+            const response = await fetch('http://localhost:8080/api/users', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ username })
             });
-            document.getElementById('new-user-username').value = '';
+
+            // Check if response was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Clear input field after successful addition
+            if (usernameInput) {
+                usernameInput.value = '';
+            }
+
+            // Reload users to update the list
             loadUsers();
+
         } catch (error) {
             console.error('ERROR: Could not add user:', error);
+            alert('Failed to add user. Please try again.');
         }
     }
 
     async function deleteUser(id) {
+        // Validate that id is provided
+        if (!id) {
+            console.warn('No user ID provided for deletion.');
+            return;
+        }
+
+        // Confirm user wants to delete
         if (!confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            await fetch(`http://localhost:8080/api/users/${id}`, { method: 'DELETE' });
+            // Send DELETE request to API for the specified user ID
+            const response = await fetch(`http://localhost:8080/api/users/${id}`, { method: 'DELETE' });
+
+            // Check if deletion was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Reload users to update the list after deletion
             loadUsers();
         } catch (error) {
             console.error('ERROR: Could not delete user:', error);
+            alert('Failed to delete user. Please try again.');
         }
     }
 
     function editUser(id, username) {
+        // Set the editing user ID (used internally for updating)
         editingUserId = id;
-        document.getElementById('edit-user-username').value = username;
-        document.getElementById('edit-user-form').style.display = 'block';
-        document.getElementById('new-user-username').style.display = 'none';
-        document.getElementById('add-user-button').style.display = 'none';
+
+        // Populate the username input field with the current username
+        const editInput = document.getElementById('edit-user-username');
+        if (editInput) {
+            editInput.value = username;
+        } else {
+            console.warn('Edit input element not found.');
+            return;
+        }
+
+        // Show the edit user form
+        const editForm = document.getElementById('edit-user-form');
+        if (editForm) {
+            editForm.style.display = 'block';
+        }
+
+        // Hide the new user input and add button while editing
+        const newUserInput = document.getElementById('new-user-username');
+        if (newUserInput) newUserInput.style.display = 'none';
+
+        const addUserButton = document.getElementById('add-user-button');
+        if (addUserButton) addUserButton.style.display = 'none';
     }
 
-    function cancelEdit() {
+    function cancelEditUser() {
+        // Clear the editing user ID (exit edit mode)
         editingUserId = null;
-        document.getElementById('edit-user-form').style.display = 'none';
-        document.getElementById('new-user-username').style.display = 'block';
-        document.getElementById('add-user-button').style.display = 'inline-block';
+
+        // Hide the edit form
+        const editForm = document.getElementById('edit-user-form');
+        if (editForm) editForm.style.display = 'none';
+
+        // Show the new user input field
+        const newUserInput = document.getElementById('new-user-username');
+        if (newUserInput) newUserInput.style.display = 'block';
+
+        // Show the add user button
+        const addUserButton = document.getElementById('add-user-button');
+        if (addUserButton) addUserButton.style.display = 'inline-block';
     }
 
     async function submitEditUser() {
+        // Get the new username from the edit field
         const newUsername = document.getElementById('edit-user-username').value.trim();
+
+        // If no username provided or no user is being edited, stop
         if (!newUsername || !editingUserId) return;
 
         try {
+            // Send PUT request to update the user
             await fetch(`http://localhost:8080/api/users/${editingUserId}`, {
                 method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: newUsername })
             });
-            cancelEdit();
+
+            // Exit edit mode and reload user list
+            cancelEditUser();
             loadUsers();
         } catch (error) {
             console.error('ERROR: Could not edit user:', error);
@@ -377,86 +534,150 @@
     }
 
     function updateCurrentUserDisplay() {
+        // Find the current user by ID
         const user = users.find(u => u.id == currentUserId);
-        document.getElementById('current-username').textContent = user ? user.username : 'None';
+
+        // Update the display element with the username or 'None' if not found
+        const currentUsernameElement = document.getElementById('current-username');
+        if (currentUsernameElement) {
+            currentUsernameElement.textContent = user ? user.username : 'None';
+        }
     }
 
     function changeCurrentUser(id) {
+        // Update the current user ID in memory
         currentUserId = id;
+
+        // Save the current user ID to localStorage for persistence
         localStorage.setItem('currentUserId', id);
+
+        // Update the UI display with the new user's information
         updateCurrentUserDisplay();
+
+        // Call a function to handle any additional logic when the user changes
         onCurrentUserChanged();
     }
 
     // --- CATEGORIES ---
 
     async function loadCategories() {
+        // Check if current user ID is set
         if (!currentUserId) {
             clearCategoriesUI();
             return;
         }
 
         try {
+            // Fetch categories for the current user from API
             const response = await fetch(`http://localhost:8080/api/categories/user/${currentUserId}`);
+
+            // Validate the response status
+            if (!response.ok) {
+                throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
+            }
+
             categories = await response.json();
 
+            // Clear the existing categories table body
             const tbody = document.querySelector('#categories-table tbody');
+            if (!tbody) {
+                throw new Error('Categories table body element not found');
+            }
             tbody.innerHTML = '';
 
+            // Populate table with categories
             categories.forEach(cat => {
+                // Escape single quotes in the category name for safe HTML attribute usage
                 const safeName = cat.name.replace(/'/g, "\\'");
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${cat.id}</td>
-                    <td>${cat.name}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.id}')">Delete</button>
-                        <button onclick="editCategory('${cat.id}', '${safeName}')">Edit</button>
-                    </td>
-                `;
+                <td>${cat.id}</td>
+                <td>${cat.name}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.id}')">Delete</button>
+                    <button onclick="editCategory('${cat.id}', '${safeName}')">Edit</button>
+                </td>
+            `;
                 tbody.appendChild(row);
             });
 
+            // Update category selects or other related UI elements
             fillCategorySelects();
         } catch (error) {
+            // Log any errors that occurred during fetch or DOM manipulation
             console.error('ERROR: Could not load categories:', error);
         }
     }
 
     function clearCategoriesUI() {
-        document.querySelector('#categories-table tbody').innerHTML = '';
-        document.getElementById('budget-category').innerHTML = '';
-        document.getElementById('edit-budget-category').innerHTML = '';
+        // Clear the categories table body content
+        const tbody = document.querySelector('#categories-table tbody');
+        if (tbody) tbody.innerHTML = '';
+
+        // Clear the budget category select options
+        const budgetCategorySelect = document.getElementById('budget-category');
+        if (budgetCategorySelect) budgetCategorySelect.innerHTML = '';
+
+        // Clear the edit budget category select options
+        const editBudgetCategorySelect = document.getElementById('edit-budget-category');
+        if (editBudgetCategorySelect) editBudgetCategorySelect.innerHTML = '';
     }
 
     function fillCategorySelects() {
+        // Get the select elements for adding and editing budgets
         const addSelect = document.getElementById('budget-category');
         const editSelect = document.getElementById('edit-budget-category');
+
+        // Validate that the select elements exist before proceeding
+        if (!addSelect || !editSelect) {
+            console.error('ERROR: Category select elements not found.');
+            return;
+        }
+
+        // Clear existing options
         addSelect.innerHTML = '';
         editSelect.innerHTML = '';
 
+        // Populate both selects with current categories
         categories.forEach(cat => {
+            // Create option for addSelect
             const option1 = document.createElement('option');
             option1.value = cat.id;
             option1.textContent = cat.name;
             addSelect.appendChild(option1);
 
+            // Clone the option for editSelect
             const option2 = option1.cloneNode(true);
             editSelect.appendChild(option2);
         });
     }
 
     async function addCategory() {
-        const name = document.getElementById('new-category-name').value.trim();
-        if (!name || !currentUserId) return;
+        // Get the new category name from input and trim whitespace
+        const name = document.getElementById('new-category-name')?.value.trim();
+
+        // Validate that name is not empty and currentUserId is set
+        if (!name) {
+            console.warn('WARNING: Category name is empty.');
+            return;
+        }
+        if (!currentUserId) {
+            console.error('ERROR: No current user selected.');
+            return;
+        }
 
         try {
+            // Send POST request to add a new category
             await fetch('http://localhost:8080/api/categories', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ name, user: { id: currentUserId } })
             });
+
+            // Clear input after successful add
             document.getElementById('new-category-name').value = '';
+
+            // Reload categories to update UI
             loadCategories();
         } catch (error) {
             console.error('ERROR: Could not add category:', error);
@@ -464,44 +685,76 @@
     }
 
     async function deleteCategory(id) {
+        // Confirm user really wants to delete the category
+        if (!id) {
+            console.warn('WARNING: No category ID provided for deletion.');
+            return;
+        }
         if (!confirm('Are you sure you want to delete this category?')) return;
 
         try {
+            // Send DELETE request to backend to remove the category by id
             await fetch(`http://localhost:8080/api/categories/${id}`, { method: 'DELETE' });
+
+            // Reload categories list after successful deletion
             loadCategories();
         } catch (error) {
+            // Log any errors during the deletion process
             console.error('ERROR: Could not delete category:', error);
         }
     }
 
     function editCategory(id, name) {
+        // Store the ID of the category being edited
         editingCategoryId = id;
+
+        // Pre-fill the edit form input with the current category name
         document.getElementById('edit-category-name').value = name;
+
+        // Show the edit category form
         document.getElementById('edit-category-form').style.display = 'block';
+
+        // Hide the new category input field
         document.getElementById('new-category-name').style.display = 'none';
+
+        // Hide the add category button
         document.getElementById('add-category-button').style.display = 'none';
     }
 
     function cancelEditCategory() {
+        // Reset the editing category ID since editing is canceled
         editingCategoryId = null;
+
+        // Hide the edit category form
         document.getElementById('edit-category-form').style.display = 'none';
+
+        // Show the new category input field
         document.getElementById('new-category-name').style.display = 'block';
+
+        // Show the add category button
         document.getElementById('add-category-button').style.display = 'inline-block';
     }
 
     async function submitEditCategory() {
+        // Get the trimmed new category name from input
         const newName = document.getElementById('edit-category-name').value.trim();
+
+        // Return early if no name or no category is currently being edited
         if (!newName || !editingCategoryId) return;
 
         try {
+            // Send PUT request to update category on backend
             await fetch(`http://localhost:8080/api/categories/${editingCategoryId}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ name: newName, user: { id: currentUserId } })
             });
+
+            // Cancel edit mode and reload categories list
             cancelEditCategory();
             loadCategories();
         } catch (error) {
+            // Log any errors during the update
             console.error('ERROR: Could not edit category:', error);
         }
     }

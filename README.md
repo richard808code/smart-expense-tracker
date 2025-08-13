@@ -15,19 +15,19 @@ For example: **Budget:** Weekend BBQ, **Category:** Food
 ## Screenshots
 
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 ### Users
-![Users](screenshots/users.png)
+![Users](screenshots/Users.png)
 
 ### Categories
-![Categories](screenshots/categories.png)
+![Categories](screenshots/Categories.png)
 
 ### Budgets
-![Budgets](screenshots/budgets.png)
+![Budgets](screenshots/Budgets.png)
 
 ### Transactions
-![Transactions](screenshots/transactions.png)
+![Transactions](screenshots/Transactions.png)
 
 ## Technologies
 

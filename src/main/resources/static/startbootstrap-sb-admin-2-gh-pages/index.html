@@ -66,7 +66,7 @@
                                     <h6 class="m-0 font-weight-bold text-primary">Budget Limit Control</h6>
                                 </div>
                                 <div class="card-body" id="budget-progress-bars">
-                                    <!-- Progress bary se sem vloží dynamicky -->
+                                    <!-- add progress bars dynamically -->
                                 </div>
                             </div>
                         </div>
@@ -75,13 +75,19 @@
 
                 <div id="users-section" style="display:none;">
                     <h1 class="h3 mb-4 text-gray-800">Users</h1>
-                    <input type="text" id="new-user-username" placeholder="Username" class="form-control mb-2"/>
-                    <button id="add-user-button" class="btn btn-primary mb-3" onclick="addUser()">Add User</button>
 
-                    <div id="edit-user-form" style="display:none; margin-bottom:15px;">
-                        <input type="text" id="edit-user-username" class="form-control mb-2" />
-                        <button class="btn btn-success" onclick="submitEditUser()">Save</button>
-                        <button class="btn btn-secondary" onclick="cancelEditUser()">Cancel</button>
+                    <!-- Add User Form -->
+                    <div id="add-user-form" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="new-user-username" placeholder="Username"
+                               class="form-control mb-2" style="max-width:180px; height:38px;"/>
+                        <button id="add-user-button" class="btn btn-primary mb-2" style="height:38px; min-width:120px;" onclick="addUser()">Add User</button>
+                    </div>
+
+                    <!-- Edit User Form -->
+                    <div id="edit-user-form" style="display:none; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="edit-user-username" class="form-control mb-2" style="max-width:180px; height:38px;"/>
+                        <button class="btn btn-success mb-2" style="height:38px; min-width:120px;" onclick="submitEditUser()">Save</button>
+                        <button class="btn btn-secondary mb-2" style="height:38px; min-width:120px;" onclick="cancelEditUser()">Cancel</button>
                     </div>
 
                     <table class="table table-bordered" id="users-table">
@@ -102,26 +108,24 @@
                     <h1 class="h3 mb-4 text-gray-800">Budgets</h1>
 
                     <!-- Add Budget Form -->
-                    <div id="add-budget-form" style="margin-bottom: 20px;">
+                    <div id="add-budget-form" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
                         <input type="text" id="new-budget-name" placeholder="Budget name"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                               class="form-control mb-2" style="max-width:180px; height:38px;"/>
                         <input type="number" id="new-budget-limit" placeholder="Budget limit"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
-                        <select id="budget-category" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
-                        <button id="add-budget-button" class="btn btn-primary mb-3" onclick="addBudget()">Add Budget</button>
+                               class="form-control mb-2" style="max-width:200px; height:38px;" min="0" step="0.01"/>
+                        <select id="budget-category" class="form-control mb-2" style="max-width:200px; height:38px;"></select>
+                        <button id="add-budget-button" class="btn btn-primary mb-2" style="height:38px; min-width:120px;" onclick="addBudget()">Add Budget</button>
                     </div>
 
                     <!-- Edit Budget Form -->
-                    <div id="edit-budget-form" style="display:none; margin-bottom: 20px;">
+                    <div id="edit-budget-form" style="display:none; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
                         <input type="text" id="edit-budget-name" placeholder="Budget name"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
+                               class="form-control mb-2" style="max-width:180px; height:38px;"/>
                         <input type="number" id="edit-budget-limit" placeholder="Budget limit"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
-                        <select id="edit-budget-category" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
-                        <button class="btn btn-success" onclick="submitEditBudget()">Save</button>
-                        <button class="btn btn-secondary" onclick="cancelEditBudget()">Cancel</button>
+                               class="form-control mb-2" style="max-width:200px; height:38px;" min="0" step="0.01"/>
+                        <select id="edit-budget-category" class="form-control mb-2" style="max-width:200px; height:38px;"></select>
+                        <button class="btn btn-success mb-2" style="height:38px; min-width:120px;" onclick="submitEditBudget()">Save</button>
+                        <button class="btn btn-secondary mb-2" style="height:38px; min-width:120px;" onclick="cancelEditBudget()">Cancel</button>
                     </div>
 
                     <!-- Budgets Table -->
@@ -140,22 +144,23 @@
                 </div>
 
                 <div id="categories-section" style="display: none;">
-                    <h2>Categories</h2>
+                    <h1 class="h3 mb-4 text-gray-800">Categories</h1>
 
-
-                    <div>
-                        <input type="text" id="new-category-name" placeholder="Category name" class="form-control mb-2" />
-                        <button id="add-category-button" class="btn btn-primary mb-3" onclick="addCategory()">Add Category</button>
+                    <!-- Add Category Form -->
+                    <div id="add-category-form" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="new-category-name" placeholder="Category name"
+                               class="form-control mb-2" style="max-width:180px; height:38px;"/>
+                        <button id="add-category-button" class="btn btn-primary mb-2" style="height:38px; min-width:120px;" onclick="addCategory()">Add Category</button>
                     </div>
 
-                    <div id="edit-category-form" style="display:none; margin-bottom:15px;">
-                        <input type="text" id="edit-category-name" class="form-control mb-2" />
-                        <button class="btn btn-success" onclick="submitEditCategory()">Save</button>
-                        <button class="btn btn-secondary" onclick="cancelEditCategory()">Cancel</button>
+                    <!-- Edit Category Form -->
+                    <div id="edit-category-form" style="display:none; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="edit-category-name" class="form-control mb-2" style="max-width:180px; height:38px;"/>
+                        <button class="btn btn-success mb-2" style="height:38px; min-width:120px;" onclick="submitEditCategory()">Save</button>
+                        <button class="btn btn-secondary mb-2" style="height:38px; min-width:120px;" onclick="cancelEditCategory()">Cancel</button>
                     </div>
 
-
-                    <table id="categories-table" class="table table-striped mt-3">
+                    <table id="categories-table" class="table table-bordered">
                         <thead>
                         <tr>
                             <th>ID</th>
@@ -163,7 +168,9 @@
                             <th>Actions</th>
                         </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                        <!-- Filled by JS -->
+                        </tbody>
                     </table>
                 </div>
 
@@ -171,30 +178,29 @@
                     <h1 class="h3 mb-4 text-gray-800">Transactions</h1>
 
                     <!-- Add Transaction Form -->
-                    <div id="add-transaction-form" style="margin-bottom: 20px;">
+                    <div id="add-transaction-form" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
                         <input type="number" id="new-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="-999999" step="0.01"/>
+                               class="form-control mb-2" style="max-width:180px; height:38px;" min="-999999" step="0.01"/>
                         <input type="text" id="new-transaction-description" placeholder="Description"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
-                        <select id="transaction-budget-select" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
+                               class="form-control mb-2" style="max-width:200px; height:38px;"/>
                         <input type="datetime-local" id="new-transaction-date"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" />
-                        <button id="add-transaction-button" class="btn btn-primary mb-3" onclick="addTransaction()">Add Transaction</button>
+                               class="form-control mb-2" style="max-width:200px; height:38px;"/>
+                        <select id="transaction-budget-select" class="form-control mb-2" style="max-width:200px; height:38px;"></select>
+                        <button id="add-transaction-button" class="btn btn-primary mb-2"
+                                style="height:38px; min-width:120px;" onclick="addTransaction()">Add Transaction</button>
                     </div>
 
                     <!-- Edit Transaction Form -->
-                    <div id="edit-transaction-form" style="display:none; margin-bottom: 20px;">
+                    <div id="edit-transaction-form" style="display:none; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px;">
                         <input type="number" id="edit-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="-999999" step="0.01"/>
+                               class="form-control mb-2" style="max-width:180px; height:38px;" min="-999999" step="0.01"/>
                         <input type="text" id="edit-transaction-description" placeholder="Description"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
-                        <select id="edit-transaction-budget-select" class="form-control mb-2"
-                                style="max-width: 300px; display: inline-block;"></select>
+                               class="form-control mb-2" style="max-width:200px; height:38px;"/>
                         <input type="datetime-local" id="edit-transaction-date"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" />
-                        <button class="btn btn-success" onclick="submitEditTransaction()">Save</button>
-                        <button class="btn btn-secondary" onclick="cancelEditTransaction()">Cancel</button>
+                               class="form-control mb-2" style="max-width:200px; height:38px;"/>
+                        <select id="edit-transaction-budget-select" class="form-control mb-2" style="max-width:200px; height:38px;"></select>
+                        <button class="btn btn-success mb-2" style="height:38px; min-width:120px;" onclick="submitEditTransaction()">Save</button>
+                        <button class="btn btn-secondary mb-2" style="height:38px; min-width:120px;" onclick="cancelEditTransaction()">Cancel</button>
                     </div>
 
                     <!-- Transactions Table -->
@@ -448,6 +454,9 @@
 
             // Reload users to update the list after deletion
             loadUsers();
+
+            // Reloads the progress bards on the dashboard
+            loadBudgetsWithRemaining();
         } catch (error) {
             console.error('ERROR: Could not delete user:', error);
             alert('Failed to delete user. Please try again.');
@@ -470,7 +479,7 @@
         // Show the edit user form
         const editForm = document.getElementById('edit-user-form');
         if (editForm) {
-            editForm.style.display = 'block';
+            editForm.style.display = 'flex';
         }
 
         // Hide the new user input and add button while editing
@@ -707,7 +716,7 @@
         document.getElementById('edit-category-name').value = name;
 
         // Show the edit category form
-        document.getElementById('edit-category-form').style.display = 'block';
+        document.getElementById('edit-category-form').style.display = 'flex';
 
         // Hide the new category input field
         document.getElementById('new-category-name').style.display = 'none';
@@ -878,6 +887,9 @@
             // Reload budgets to reflect changes
             loadBudgets();
 
+            // Loads new budget into the dashboard
+            loadBudgetsWithRemaining();
+
             // Reload budget options in transaction selects
             await loadBudgetsForTransactionSelect('transaction-budget-select');
             await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
@@ -931,7 +943,7 @@
         document.getElementById('edit-budget-category').value = categoryId;
 
         // Show the edit form and hide the add budget form
-        document.getElementById('edit-budget-form').style.display = 'block';
+        document.getElementById('edit-budget-form').style.display = 'flex';
         document.getElementById('add-budget-form').style.display = 'none';
     }
 
@@ -943,7 +955,7 @@
         document.getElementById('edit-budget-form').style.display = 'none';
 
         // Show the add budget form again
-        document.getElementById('add-budget-form').style.display = 'block';
+        document.getElementById('add-budget-form').style.display = 'flex';
     }
 
     async function submitEditBudget() {
@@ -1124,7 +1136,7 @@
 
         // Hide the add transaction form and show the edit transaction form
         document.getElementById('add-transaction-form').style.display = 'none';
-        document.getElementById('edit-transaction-form').style.display = 'block';
+        document.getElementById('edit-transaction-form').style.display = 'flex';
     }
 
 
@@ -1183,7 +1195,7 @@
     function cancelEditTransaction() {
         editingTransactionId = null;
         document.getElementById('edit-transaction-form').style.display = 'none';
-        document.getElementById('add-transaction-form').style.display = 'block';
+        document.getElementById('add-transaction-form').style.display = 'flex';
     }
 
 

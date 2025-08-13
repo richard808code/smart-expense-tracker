@@ -180,13 +180,13 @@
                                 style="max-width: 300px; display: inline-block;"></select>
                         <input type="datetime-local" id="new-transaction-date"
                                class="form-control mb-2" style="max-width: 300px; display: inline-block;" />
-                        <button id="add-transaction-button" class="btn btn-primary mb-3">Add Transaction</button>
+                        <button id="add-transaction-button" class="btn btn-primary mb-3" onclick="addTransaction()">Add Transaction</button>
                     </div>
 
                     <!-- Edit Transaction Form -->
                     <div id="edit-transaction-form" style="display:none; margin-bottom: 20px;">
                         <input type="number" id="edit-transaction-amount" placeholder="Amount"
-                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="0" step="0.01"/>
+                               class="form-control mb-2" style="max-width: 300px; display: inline-block;" min="-999999" step="0.01"/>
                         <input type="text" id="edit-transaction-description" placeholder="Description"
                                class="form-control mb-2" style="max-width: 300px; display: inline-block;"/>
                         <select id="edit-transaction-budget-select" class="form-control mb-2"
@@ -212,7 +212,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-
 
             </div>
         </div>
@@ -320,7 +319,7 @@
                         break;
                     case 'transactions':
                         showSection('transactions-section');
-                        fetchTransactions();
+                        loadTransactions();
                         break;
                     default:
                         console.warn(`Unknown section name: ${sectionName}`);
@@ -350,37 +349,25 @@
             }
             tbody.innerHTML = ''; // Clear existing rows
 
-            // For each user, create a table row with data and action buttons
+            // Loop through each user and create table rows
             users.forEach(user => {
+                // Basic validation: check required properties
+                if (!user || typeof user.id === 'undefined' || !user.username) {
+                    console.warn('Skipping invalid user entry:', user);
+                    return;
+                }
+
+                // Create table row with user details and action buttons
                 const row = document.createElement('tr');
-
-                // Create cells for user ID and username
-                const tdId = document.createElement('td');
-                tdId.textContent = user.id;
-                const tdUsername = document.createElement('td');
-                tdUsername.textContent = user.username;
-
-                // Create actions cell with Delete, Edit, and Select buttons
-                const tdActions = document.createElement('td');
-
-                const btnDelete = document.createElement('button');
-                btnDelete.className = 'btn btn-danger btn-sm';
-                btnDelete.textContent = 'Delete';
-                btnDelete.addEventListener('click', () => deleteUser(user.id));
-
-                const btnEdit = document.createElement('button');
-                btnEdit.textContent = 'Edit';
-                btnEdit.addEventListener('click', () => editUser(user.id, user.username));
-
-                const btnSelect = document.createElement('button');
-                btnSelect.textContent = 'Select';
-                btnSelect.addEventListener('click', () => changeCurrentUser(user.id));
-
-                // Append buttons to the actions cell
-                tdActions.append(btnDelete, btnEdit, btnSelect);
-
-                // Append all cells to the row
-                row.append(tdId, tdUsername, tdActions);
+                row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary me-1" onclick="editUser('${user.id}', '${user.username}')">Edit</button>
+                    <button class="btn btn-sm btn-secondary me-1" onclick="changeCurrentUser('${user.id}')">Select</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                </td>
+            `;
 
                 // Append the row to the table body
                 tbody.appendChild(row);
@@ -397,6 +384,7 @@
             onCurrentUserChanged();
 
         } catch (error) {
+            // Log any error encountered during fetching or rendering
             console.error('ERROR: Could not load the users:', error);
         }
     }
@@ -561,50 +549,57 @@
     // --- CATEGORIES ---
 
     async function loadCategories() {
-        // Check if current user ID is set
+        // Check if a current user is selected
         if (!currentUserId) {
             clearCategoriesUI();
             return;
         }
 
         try {
-            // Fetch categories for the current user from API
+            // Fetch categories for the current user
             const response = await fetch(`http://localhost:8080/api/categories/user/${currentUserId}`);
-
-            // Validate the response status
             if (!response.ok) {
                 throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
             }
 
             categories = await response.json();
 
-            // Clear the existing categories table body
+            // Find the table body element for categories
             const tbody = document.querySelector('#categories-table tbody');
             if (!tbody) {
                 throw new Error('Categories table body element not found');
             }
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; // Clear existing rows
 
-            // Populate table with categories
+            // Loop through each category and create table rows
             categories.forEach(cat => {
-                // Escape single quotes in the category name for safe HTML attribute usage
+                if (!cat || typeof cat.id === 'undefined' || !cat.name) {
+                    console.warn('Skipping invalid category entry:', cat);
+                    return;
+                }
+
+                // Escape single quotes for safe HTML usage
                 const safeName = cat.name.replace(/'/g, "\\'");
+
+                // Create a table row with buttons styled like transactions/users
                 const row = document.createElement('tr');
                 row.innerHTML = `
                 <td>${cat.id}</td>
                 <td>${cat.name}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.id}')">Delete</button>
-                    <button onclick="editCategory('${cat.id}', '${safeName}')">Edit</button>
+                    <button class="btn btn-sm btn-primary me-1" onclick="editCategory('${cat.id}', '${safeName}')">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCategory('${cat.id}')">Delete</button>
                 </td>
             `;
+
                 tbody.appendChild(row);
             });
 
-            // Update category selects or other related UI elements
+            // Update any category selects or related UI elements
             fillCategorySelects();
+
         } catch (error) {
-            // Log any errors that occurred during fetch or DOM manipulation
+            // Log errors during fetch or rendering
             console.error('ERROR: Could not load categories:', error);
         }
     }
@@ -762,44 +757,89 @@
     // --- BUDGETS ---
 
     async function loadBudgets() {
+        // Check if a current user is selected
         if (!currentUserId) {
-            clearBudgetsUI();
+            clearBudgetsUi();
             return;
         }
 
         try {
+            // Fetch budgets for the current user
             const response = await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch budgets: ${response.status} ${response.statusText}`);
+            }
+
             budgets = await response.json();
 
-            console.log('Budgets loaded:', budgets); // pro kontrolu v konzoli
-
+            // Find the table body element for budgets
             const tbody = document.querySelector('#budgets-table tbody');
-            tbody.innerHTML = '';
+            if (!tbody) {
+                throw new Error('Budgets table body element not found');
+            }
+            tbody.innerHTML = ''; // Clear existing rows
 
+            // Loop through each budget and create table rows
             budgets.forEach(budget => {
-                // Ověření, zda category existuje a má name
-                const categoryName = budget.category && budget.category.name ? budget.category.name : 'N/A';
+                if (!budget || typeof budget.id === 'undefined' || !budget.name) {
+                    console.warn('Skipping invalid budget entry:', budget);
+                    return;
+                }
 
+                const categoryName = budget.category && budget.category.name ? budget.category.name : 'N/A';
+                const safeName = budget.name.replace(/'/g, "\\'");
+
+                // Create a table row with buttons styled like transactions/users
                 const row = document.createElement('tr');
                 row.innerHTML = `
                 <td>${budget.id}</td>
-                <td>${budget.name}</td>
+                <td>${safeName}</td>
                 <td>${budget.limitAmount}</td>
                 <td>${categoryName}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteBudget('${budget.id}')">Delete</button>
-                    <button onclick="editBudget('${budget.id}', '${budget.name}', ${budget.limitAmount}, '${budget.category ? budget.category.id : ''}')">Edit</button>
+                    <button class="btn btn-sm btn-primary me-1" onclick="editBudget('${budget.id}', '${safeName}', ${budget.limitAmount}, '${budget.category ? budget.category.id : ''}')">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteBudget('${budget.id}')">Delete</button>
                 </td>
             `;
+
                 tbody.appendChild(row);
             });
+
+            // Update budget selects or other related UI elements
+            fillBudgetSelects();
+
         } catch (error) {
+            // Log errors during fetch or rendering
             console.error('ERROR: Could not load budgets:', error);
         }
     }
 
-    function clearBudgetsUI() {
+    function clearBudgetsUi() {
+        // Clear all budget rows from the table body
         document.querySelector('#budgets-table tbody').innerHTML = '';
+    }
+
+    function fillBudgetSelects() {
+        const addSelect = document.getElementById('transaction-budget-select');
+        const editSelect = document.getElementById('edit-transaction-budget-select');
+
+        if (!addSelect || !editSelect) {
+            console.error('ERROR: Budget select elements not found.');
+            return;
+        }
+
+        addSelect.innerHTML = '';
+        editSelect.innerHTML = '';
+
+        budgets.forEach(budget => {
+            const option1 = document.createElement('option');
+            option1.value = budget.id;
+            option1.textContent = budget.name;
+            addSelect.appendChild(option1);
+
+            const option2 = option1.cloneNode(true);
+            editSelect.appendChild(option2);
+        });
     }
 
     async function addBudget() {
@@ -807,12 +847,20 @@
         const limitAmount = parseFloat(document.getElementById('new-budget-limit').value);
         const categoryId = document.getElementById('budget-category').value;
 
+        // Validate required fields and values
         if (!name || isNaN(limitAmount) || !categoryId || !currentUserId) {
             alert('Please fill all budget fields correctly.');
             return;
         }
 
+        // Ensure limit is positive
+        if (limitAmount <= 0) {
+            alert('Budget limit must be greater than 0.');
+            return;
+        }
+
         try {
+            // Send POST request to create a new budget for the current user
             await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -823,60 +871,100 @@
                     user: { id: currentUserId }
                 })
             });
-            clearBudgetForm();
+
+            // Clear the input form after successful addition
+            clearBudgetAddForm();
+
+            // Reload budgets to reflect changes
             loadBudgets();
+
+            // Reload budget options in transaction selects
             await loadBudgetsForTransactionSelect('transaction-budget-select');
             await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
+
         } catch (error) {
             console.error('ERROR: Could not add budget:', error);
         }
     }
 
-    function clearBudgetForm() {
+    function clearBudgetAddForm() {
+        // Reset the budget name input field
         document.getElementById('new-budget-name').value = '';
+
+        // Reset the budget limit input field
         document.getElementById('new-budget-limit').value = '';
+
+        // Reset category dropdown to the first option
         document.getElementById('budget-category').selectedIndex = 0;
     }
 
 
     async function deleteBudget(id) {
+        // Basic validation: ensure ID is provided
+        if (!id) {
+            console.warn('No budget ID provided for deletion.');
+            return;
+        }
+
+        // Ask the user to confirm the deletion action
         if (!confirm('Are you sure you want to delete this budget?')) return;
 
         try {
+            // Send DELETE request to backend to remove budget by ID
             await fetch(`http://localhost:8080/api/budgets/${id}`, { method: 'DELETE' });
+
+            // Reload budgets to update the UI after deletion
             loadBudgets();
         } catch (error) {
+            // Log any errors for debugging
             console.error('ERROR: Could not delete budget:', error);
         }
     }
 
     function editBudget(id, name, limitAmount, categoryId) {
+        // Set the global editing budget ID to the one provided
         editingBudgetId = id;
+
+        // Fill the edit form inputs with the current budget data
         document.getElementById('edit-budget-name').value = name;
         document.getElementById('edit-budget-limit').value = limitAmount;
         document.getElementById('edit-budget-category').value = categoryId;
 
+        // Show the edit form and hide the add budget form
         document.getElementById('edit-budget-form').style.display = 'block';
         document.getElementById('add-budget-form').style.display = 'none';
     }
 
     function cancelEditBudget() {
+        // Reset the editing budget ID to null to indicate no budget is being edited
         editingBudgetId = null;
+
+        // Hide the edit budget form
         document.getElementById('edit-budget-form').style.display = 'none';
+
+        // Show the add budget form again
         document.getElementById('add-budget-form').style.display = 'block';
     }
 
     async function submitEditBudget() {
+        // Get the trimmed name value from the edit form input
         const name = document.getElementById('edit-budget-name').value.trim();
+
+        // Parse the limit amount input value to a float
         const limitAmount = parseFloat(document.getElementById('edit-budget-limit').value);
+
+        // Get the selected category ID from the edit form select
         const categoryId = document.getElementById('edit-budget-category').value;
 
+        // Validate all fields: name must not be empty, limitAmount must be a number,
+        // categoryId must be selected, and editingBudgetId must be set
         if (!name || isNaN(limitAmount) || !categoryId || !editingBudgetId) {
             alert('Please fill all budget fields correctly.');
             return;
         }
 
         try {
+            // Send PUT request to update the budget on the backend
             await fetch(`http://localhost:8080/api/budgets/${editingBudgetId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -886,69 +974,98 @@
                     category: { id: categoryId }
                 })
             });
+
+            // Cancel editing mode and reload budgets to refresh UI
             cancelEditBudget();
             loadBudgets();
+
         } catch (error) {
+            // Log error if request fails
             console.error('ERROR: Could not edit budget:', error);
         }
     }
 
     //Transactions
 
-    // --- Helper pro vykreslení seznamu budgetů do <select> ---
-    function renderBudgetOptions(selectElem) {
-        selectElem.innerHTML = budgets
-            .map(b => `<option value="${b.id}">${b.name}</option>`)
-            .join('');
-    }
-
-    // --- Načtení transakcí z API a vykreslení ---
-    async function fetchTransactions() {
+    async function loadTransactions() {
+        // Check if currentUserId is set; if not, clear transactions UI and exit
         if (!currentUserId) {
-            console.warn('No currentUserId set');
+            clearTransactionsUi();
             return;
         }
-        const res = await fetch(`http://localhost:8080/api/transactions/user/${currentUserId}`);
-        if (!res.ok) {
-            console.error('Failed to load transactions:', res.status);
-            return;
+
+        try {
+            // Fetch transactions for the current user from API endpoint
+            const response = await fetch(`http://localhost:8080/api/transactions/user/${currentUserId}`);
+
+            // Check if response status is OK (status code 200-299)
+            if (!response.ok) {
+                console.error(`Failed to load transactions: ${response.status} ${response.statusText}`);
+                return;
+            }
+
+            // Parse JSON body from the response
+            transactions = await response.json();
+
+            // Select the transactions table body and clear existing rows
+            const tbody = document.querySelector('#transactions-table tbody');
+            tbody.innerHTML = '';
+
+            // Loop through each transaction and create table rows
+            transactions.forEach(t => {
+                // Basic validation: check required properties
+                if (!t || typeof t.id === 'undefined' || typeof t.amount !== 'number' || !t.date) {
+                    console.warn('Skipping invalid transaction entry:', t);
+                    return;
+                }
+
+                // Get budget name if available, fallback to 'N/A'
+                const budgetName = t.budget && t.budget.name ? t.budget.name : 'N/A';
+
+                // Create table row with transaction details and action buttons
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${t.id}</td>
+                <td>${t.amount.toFixed(2)}</td>
+                <td>${t.description || ''}</td>
+                <td>${budgetName}</td>
+                <td>${t.date}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editTransaction('${t.id}')">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTransaction('${t.id}')">Delete</button>
+                </td>
+            `;
+
+                // Append the row to the table body
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            // Log any error encountered during fetching or rendering
+            console.error('ERROR: Could not load transactions:', error);
         }
-        transactions = await res.json();
-        renderTransactionsTable();
     }
 
-    // --- Vykreslení tabulky transakcí ---
-    function renderTransactionsTable() {
-        const tbody = document.querySelector('#transactions-table tbody');
-        tbody.innerHTML = transactions
-            .map(t => `
-      <tr>
-        <td>${t.id}</td>
-        <td>${t.amount.toFixed(2)}</td>
-        <td>${t.description}</td>
-        <td>${t.budget ? t.budget.name : ''}</td>
-        <td>${t.date}</td>  <!-- Přidej datum sem -->
-        <td>
-          <button class="btn btn-sm btn-primary" onclick="startEditTransaction('${t.id}')">Edit</button>
-<button class="btn btn-sm btn-danger" onclick="deleteTransaction('${t.id}')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+    // Clears the transactions table body to remove all existing rows from the UI
+    function clearTransactionsUi() {
+        document.querySelector('#transactions-table tbody').innerHTML = '';
     }
 
-    // --- Přidání nové transakce ---
+    // Adds a new transaction after validating inputs, then reloads transactions from backend
     async function addTransaction() {
+        // Get input values from the form
         const amount = parseFloat(document.getElementById('new-transaction-amount').value);
         const description = document.getElementById('new-transaction-description').value.trim();
         const budgetId = document.getElementById('transaction-budget-select').value;
         const date = document.getElementById('new-transaction-date').value;
 
-        if (isNaN(amount) || amount === 0 || description === '' || !date) {
-            alert('Please fill all fields including date.');
-            return;
+        // Basic validation: check for empty fields, zero amount, invalid date, and missing IDs
+        if (isNaN(amount) || amount === 0 || description === '' || !date || !budgetId || !currentUserId) {
+            alert('Please fill all fields correctly, including date and budget.');
+            return; // Stop if validation fails
         }
 
         try {
+            // Send POST request to backend API to add the new transaction
             const res = await fetch(`http://localhost:8080/api/transactions/user/${currentUserId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -960,150 +1077,152 @@
                     date
                 })
             });
+
+            // If response is not OK, throw error to catch block
             if (!res.ok) throw new Error('Failed to add transaction');
-            const newTransaction = await res.json();
-            transactions.push(newTransaction);
-            renderTransactionsTable();
-            clearAddTransactionForm();
+
+            // On success, reload transactions to update the UI
+            await loadTransactions();
+
+            // Clear the add transaction form fields
+            clearTransactionAddForm();
+
+            // Reload budgets with remaining amounts to update budget info if needed
             loadBudgetsWithRemaining();
         } catch (e) {
+            // Show error alert if adding transaction fails
             alert(e.message);
         }
     }
 
-    function clearAddTransactionForm() {
+    function clearTransactionAddForm() {
+        // Clear the amount input field for new transaction
         document.getElementById('new-transaction-amount').value = '';
+        // Clear the description input field for new transaction
         document.getElementById('new-transaction-description').value = '';
+        // Reset the budget dropdown to the first option
         document.getElementById('transaction-budget-select').selectedIndex = 0;
     }
 
-    // --- Start editace transakce ---
-    async function startEditTransaction(id) {
-        const t = transactions.find(tr => tr.id === id);
-        if (!t) return;
 
+    // Prepares the edit transaction form by loading the transaction data into the inputs
+    async function editTransaction(id) {
+        // Find the transaction in the current list by ID
+        const t = transactions.find(tr => tr.id === id);
+        if (!t) return; // If not found, exit early
+
+        // Store the ID of the transaction currently being edited
         editingTransactionId = id;
 
+        // Fill the edit form inputs with existing transaction data
         document.getElementById('edit-transaction-amount').value = t.amount;
         document.getElementById('edit-transaction-description').value = t.description;
 
-        await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
 
+        // Set the budget select to the current transaction's budget
         document.getElementById('edit-transaction-budget-select').value = t.budget.id;
 
+        // Hide the add transaction form and show the edit transaction form
         document.getElementById('add-transaction-form').style.display = 'none';
         document.getElementById('edit-transaction-form').style.display = 'block';
     }
 
-    // --- Odeslání editace ---
+
     async function submitEditTransaction() {
+        // Parse amount from input and trim description
         const amount = parseFloat(document.getElementById('edit-transaction-amount').value);
         const description = document.getElementById('edit-transaction-description').value.trim();
         const budgetId = document.getElementById('edit-transaction-budget-select').value;
-        const date = document.getElementById('edit-transaction-date').value; // <- tady datum z edit inputu
+        const date = document.getElementById('edit-transaction-date').value;
 
-        if (isNaN(amount) || amount <= 0 || description === '' || !date || !editingTransactionId) {
-            alert('Please enter valid amount, description, date, and make sure transaction ID is set.');
+        // Validate inputs: amount must be a number and not zero, description and date required, editingTransactionId must be set
+        if (isNaN(amount) || amount === 0 || description === '' || !date || !editingTransactionId) {
+            alert('Please enter valid amount (non-zero), description, date, and make sure transaction ID is set.');
             return;
         }
 
+        // Prepare data object to send to backend API
         const bodyData = {
             amount,
             description,
             budget: { id: budgetId },
             user: { id: currentUserId },
-            date  // použij přímo datum z inputu
+            date
         };
 
-        console.log('PUT /api/transactions body:', JSON.stringify(bodyData));
-
         try {
+            // Send PUT request to update transaction by its ID
             const res = await fetch(`http://localhost:8080/api/transactions/${editingTransactionId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyData)
             });
 
+            // If response is not OK, throw error with server message
             if (!res.ok) {
                 const text = await res.text();
                 throw new Error(`Failed to update transaction. Server responded: ${text}`);
             }
 
+            // Parse updated transaction from response
             const updatedTransaction = await res.json();
 
+            // Find the edited transaction in local array and update it
             const idx = transactions.findIndex(t => t.id === editingTransactionId);
             if (idx >= 0) {
                 transactions[idx] = updatedTransaction;
-                renderTransactionsTable();
-                cancelEditTransaction();
+                loadTransactions();      // Reload transactions list to refresh UI
+                cancelEditTransaction(); // Hide edit form and show add form again
             }
         } catch (e) {
-            alert(e.message);
+            alert(e.message);          // Show error alert if fetch or update fails
         }
     }
 
-    // --- Zrušení editace ---
+    // Resets the editing state and switches the UI back to the add transaction form.
     function cancelEditTransaction() {
         editingTransactionId = null;
         document.getElementById('edit-transaction-form').style.display = 'none';
         document.getElementById('add-transaction-form').style.display = 'block';
     }
 
-    // --- Smazání transakce ---
+
+    // Asks for confirmation and deletes the transaction by ID if confirmed
+    // Then updates the local transactions array and reloads the transaction list
     async function deleteTransaction(id) {
         if (!confirm('Are you sure you want to delete this transaction?')) return;
+
         try {
             const res = await fetch(`http://localhost:8080/api/transactions/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete transaction');
+
+            // Remove deleted transaction from local array
             transactions = transactions.filter(t => t.id !== id);
-            renderTransactionsTable();
+
+            // Reload transactions to update the UI
+            loadTransactions();
         } catch (e) {
             alert(e.message);
         }
     }
 
-    // --- Inicializace na začátku ---
-    async function initTransactionsSection() {
-        // načti budgety do obou selectů podle aktuálního uživatele
-        await loadBudgetsForTransactionSelect('transaction-budget-select');
-        await loadBudgetsForTransactionSelect('edit-transaction-budget-select');
+    //---Dashboard---
 
-        await fetchTransactions();
-
-        document.getElementById('add-transaction-button').onclick = addTransaction;
-    }
-
-
-    async function loadBudgetsForTransactionSelect(selectId) {
-        if (!currentUserId) return;
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/budgets/user/${currentUserId}`);
-            const userBudgets = await response.json();
-
-            const select = document.getElementById(selectId);
-            select.innerHTML = '';
-
-            userBudgets.forEach(budget => {
-                const option = document.createElement('option');
-                option.value = budget.id;
-                option.textContent = budget.name;
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('ERROR: Could not load budgets for transaction select:', error);
-        }
-    }
-
+    // Renders progress bars showing budget usage for each budget item
     function renderBudgetProgressBars(budgets) {
         const container = document.getElementById('budget-progress-bars');
-        container.innerHTML = '';
+        container.innerHTML = ''; // Clear existing progress bars
 
         budgets.forEach(budget => {
+            // Calculate the amount spent and percentage of budget used
             const spent = budget.limitAmount - budget.remainingAmount;
             const percent = Math.min((spent / budget.limitAmount) * 100, 100).toFixed(0);
+
+            // Choose progress bar color based on percentage used
+            // green if under 70%, yellow if between 70% and 100%, red if 100% or more
             const color = percent < 70 ? 'bg-success' : percent < 100 ? 'bg-warning' : 'bg-danger';
 
+            // Build the progress bar HTML string
             const progressBar = `
       <h4 class="small font-weight-bold">
         ${budget.name} — <small class="text-muted">${budget.category.name}</small>
@@ -1119,42 +1238,50 @@
       </div>
     `;
 
+            // Append the progress bar to the container
             container.innerHTML += progressBar;
         });
     }
 
+    // Loads budgets with their remaining amounts for the current user from the backend
+    // Then calls the function to render progress bars showing budget usage
     async function loadBudgetsWithRemaining() {
         if (!currentUserId) {
-            console.error('currentUserId není nastavený');
+            console.error('currentUserId is not set');
             return;
         }
 
         try {
             const response = await fetch(`http://localhost:8080/api/budgets/remaining?userId=${currentUserId}`);
-            if (!response.ok) throw new Error('Chyba při načítání budgetů');
+            if (!response.ok) throw new Error('Error loading budgets');
             const budgets = await response.json();
 
             console.log('Budgets with remaining:', budgets);
             renderBudgetProgressBars(budgets);
         } catch (error) {
-            console.error('Chyba:', error);
+            console.error('Error:', error);
         }
     }
 
+    // After the page content loads, call loadBudgetsWithRemaining once
+    // Then refresh the budgets every 10 seconds to keep data up-to-date
     document.addEventListener('DOMContentLoaded', () => {
         loadBudgetsWithRemaining();
         setInterval(loadBudgetsWithRemaining, 10000);
     });
 
-    // Volá se vždy po změně currentUserId
+
+    // Called when the current user changes to reload all related data on the page
     async function onCurrentUserChanged() {
         loadCategories();
         loadBudgets();
+        loadTransactions();
         fillCategorySelects();
-        await initTransactionsSection();
+        fillBudgetSelects();
         loadBudgetsWithRemaining();
     }
 
+    // When the window finishes loading, show the dashboard section and load the users
     window.onload = async () => {
         showSection('dashboard-section');
         await loadUsers();

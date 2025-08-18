@@ -10,9 +10,6 @@ import java.util.UUID;
 
 public interface BudgetRepository extends JpaRepository<Budget, UUID> {
 
-    // Finds all budgets belonging to a specific user by user ID
-    List<Budget> findByUserId(UUID userId);
-
     // Finds budgets for a user and fetches associated category in the same query to avoid extra selects
     @Query("SELECT b FROM Budget b JOIN FETCH b.category WHERE b.user.id = :userId")
     List<Budget> findByUserIdWithCategory(@Param("userId") UUID userId);

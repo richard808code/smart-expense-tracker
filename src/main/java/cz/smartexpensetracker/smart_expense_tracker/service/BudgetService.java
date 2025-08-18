@@ -16,8 +16,7 @@ public interface BudgetService {
     // Retrieves a budget by its unique ID
     Budget getBudgetById(UUID id);
 
-    // Retrieves all budgets associated with a specific user by their ID
-    List<Budget> getBudgetsByUserId(UUID userId);
+
 
     // Retrieves all budgets for a user including their associated category details
     List<Budget> getBudgetsByUserIdWithCategory(UUID userId);

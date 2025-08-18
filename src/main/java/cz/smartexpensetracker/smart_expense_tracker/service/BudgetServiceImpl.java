@@ -40,12 +40,6 @@ public class BudgetServiceImpl implements BudgetService {
         return budgetRepository.findById(id).orElse(null);
     }
 
-    // Finds all budgets for a given user by user ID
-    @Override
-    public List<Budget> getBudgetsByUserId(UUID userId) {
-        return budgetRepository.findByUserId(userId);
-    }
-
     // Finds budgets by user ID including their categories in the query
     @Override
     public List<Budget> getBudgetsByUserIdWithCategory(UUID userId) {

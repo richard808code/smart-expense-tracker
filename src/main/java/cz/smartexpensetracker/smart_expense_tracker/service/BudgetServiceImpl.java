@@ -79,7 +79,7 @@ public class BudgetServiceImpl implements BudgetService {
                     .map(Transaction::getAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            double remaining = budget.getLimitAmount().subtract(totalSpent).doubleValue();
+            BigDecimal remaining = budget.getLimitAmount().subtract(totalSpent);
             budget.setRemainingAmount(remaining);
         }
 

@@ -49,16 +49,16 @@ public class Budget {
 
     // Transient field, not stored in database, used to hold the remaining budget amount
     @Transient
-    private double remainingAmount;
+    private BigDecimal remainingAmount;
 
     // Expose remainingAmount in JSON serialization despite being transient
     @JsonProperty
-    public double getRemainingAmount() {
+    public BigDecimal getRemainingAmount() {
         return remainingAmount;
     }
 
     // Setter for remainingAmount
-    public void setRemainingAmount(double remainingAmount) {
+    public void setRemainingAmount(BigDecimal remainingAmount) {
         this.remainingAmount = remainingAmount;
     }
 }

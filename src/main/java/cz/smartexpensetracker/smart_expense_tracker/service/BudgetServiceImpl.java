@@ -15,11 +15,9 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
 
-    private final UserRepository userRepository;
 
-    public BudgetServiceImpl(BudgetRepository budgetRepository, UserRepository userRepository) {
+    public BudgetServiceImpl(BudgetRepository budgetRepository) {
         this.budgetRepository = budgetRepository;
-        this.userRepository = userRepository;
     }
 
     // Saves a new budget to the repository

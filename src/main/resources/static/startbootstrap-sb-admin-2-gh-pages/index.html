@@ -965,6 +965,11 @@
         // Parse the limit amount input value to a float
         const limitAmount = parseFloat(document.getElementById('edit-budget-limit').value);
 
+        if (limitAmount <= 0) {
+            alert('Budget limit must be greater than 0.');
+            return;
+        }
+
         // Get the selected category ID from the edit form select
         const categoryId = document.getElementById('edit-budget-category').value;
 

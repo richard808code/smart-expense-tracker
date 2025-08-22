@@ -12,13 +12,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(final CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 
     // Saves a new category to the database
     @Override
-    public Category createCategory(Category category) {
+    public Category createCategory(final Category category) {
         return categoryRepository.save(category);
     }
 
@@ -30,25 +30,25 @@ public class CategoryServiceImpl implements CategoryService {
 
     // Finds a category by its ID, returns null if not found
     @Override
-    public Category getCategoryById(UUID id){
+    public Category getCategoryById(final UUID id){
         return categoryRepository.findById(id).orElse(null);
     }
 
     // Returns all categories for a given user ID
     @Override
-    public List<Category> getCategoriesByUserId(UUID userId) {
+    public List<Category> getCategoriesByUserId(final UUID userId) {
         return categoryRepository.findByUserId(userId);
     }
 
     // Deletes a category by its ID
     @Override
-    public void deleteCategoryById(UUID id) {
+    public void deleteCategoryById(final UUID id) {
         categoryRepository.deleteById(id);
     }
 
     // Updates the name of an existing category and saves it, or returns null if not found
     @Override
-    public Category updateCategoryById(UUID id, Category updatedCategory) {
+    public Category updateCategoryById(final UUID id, final Category updatedCategory) {
         return categoryRepository.findById(id)
                 .map(existing -> {
                     existing.setName(updatedCategory.getName());

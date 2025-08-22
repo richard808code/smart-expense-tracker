@@ -23,7 +23,7 @@ public class TransactionController {
     private final BudgetRepository budgetRepository;
 
     // Constructor injection of dependencies
-    public TransactionController(TransactionService transactionService, UserRepository userRepository, BudgetRepository budgetRepository) {
+    public TransactionController(final TransactionService transactionService, final UserRepository userRepository, final BudgetRepository budgetRepository) {
         this.transactionService = transactionService;
         this.userRepository = userRepository;
         this.budgetRepository = budgetRepository;
@@ -37,16 +37,16 @@ public class TransactionController {
 
     // GET endpoint to get a transaction by UUID, returns 404 if not found
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID id) {
-        Transaction transaction = transactionService.getTransactionById(id);
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable final UUID id) {
+        final Transaction transaction = transactionService.getTransactionById(id);
         return transaction != null ? ResponseEntity.ok(transaction) : ResponseEntity.notFound().build();
     }
 
     // POST endpoint to create a new transaction associated with a user
     @PostMapping(value = "/user/{userId}", consumes = "application/json")
-    public ResponseEntity<Transaction> addTransaction(@PathVariable UUID userId, @Valid @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> addTransaction(@PathVariable final UUID userId, @Valid @RequestBody final Transaction transaction) {
         // Fetch user or throw exception if not found
-        User user = userRepository.findById(userId)
+        final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         transaction.setUser(user);
 
@@ -56,46 +56,46 @@ public class TransactionController {
         }
 
         // Fetch budget or throw exception if not found
-        UUID budgetId = transaction.getBudget().getId();
-        Budget budget = budgetRepository.findById(budgetId)
+        final UUID budgetId = transaction.getBudget().getId();
+        final Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
         transaction.setBudget(budget);
 
         // Create the transaction and return 201 Created
-        Transaction createdTransaction = transactionService.createTransaction(transaction);
+        final Transaction createdTransaction = transactionService.createTransaction(transaction);
         return ResponseEntity.status(201).body(createdTransaction);
     }
 
     // PUT endpoint to update an existing transaction by UUID
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransactionById(@PathVariable UUID id, @Valid @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> updateTransactionById(@PathVariable final UUID id, @Valid @RequestBody final Transaction transaction) {
         // Validate budget presence in update payload
         if (transaction.getBudget() == null || transaction.getBudget().getId() == null) {
             return ResponseEntity.badRequest().body(null);
         }
 
         // Fetch budget or throw exception
-        UUID budgetId = transaction.getBudget().getId();
-        Budget budget = budgetRepository.findById(budgetId)
+        final UUID budgetId = transaction.getBudget().getId();
+        final Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
 
         transaction.setBudget(budget);
 
         // Perform update and respond accordingly
-        Transaction updatedTransaction = transactionService.updateTransactionById(id, transaction);
+        final Transaction updatedTransaction = transactionService.updateTransactionById(id, transaction);
         return updatedTransaction != null ? ResponseEntity.ok(updatedTransaction) : ResponseEntity.notFound().build();
     }
 
     // DELETE endpoint to remove a transaction by UUID, returns 204 No Content
     @DeleteMapping("/{id}")
-    public ResponseEntity<Transaction> deleteTransactionById(@PathVariable UUID id) {
+    public ResponseEntity<Transaction> deleteTransactionById(@PathVariable final UUID id) {
         transactionService.deleteTransactionById(id);
         return ResponseEntity.noContent().build();
     }
 
     // GET endpoint to retrieve all transactions for a specific user by userId
     @GetMapping("/user/{userId}")
-    public List<Transaction> getTransactionsByUserId(@PathVariable UUID userId) {
+    public List<Transaction> getTransactionsByUserId(@PathVariable final UUID userId) {
         return transactionService.getTransactionsByUserId(userId);
     }
 }

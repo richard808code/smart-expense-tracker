@@ -17,7 +17,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     // Constructor injection of CategoryService dependency
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(final CategoryService categoryService) {
         this.categoryService = categoryService;
     }
 
@@ -29,34 +29,34 @@ public class CategoryController {
 
     // GET endpoint to return a category by UUID, 404 if not found
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable UUID id) {
-        Category category = categoryService.getCategoryById(id);
+    public ResponseEntity<Category> getCategoryById(@PathVariable final UUID id) {
+        final Category category = categoryService.getCategoryById(id);
         return category != null ? ResponseEntity.ok(category) : ResponseEntity.notFound().build();
     }
 
     // GET endpoint to return categories belonging to a specific user by userId
     @GetMapping("/user/{userId}")
-    public List<Category> getCategoriesByUserId(@PathVariable UUID userId) {
+    public List<Category> getCategoriesByUserId(@PathVariable final UUID userId) {
         return categoryService.getCategoriesByUserId(userId);
     }
 
     // POST endpoint to create a new category
     @PostMapping
-    public ResponseEntity<Category> addCategory(@Valid @RequestBody Category category) {
-        Category createdCategory = categoryService.createCategory(category);
+    public ResponseEntity<Category> addCategory(@Valid @RequestBody final Category category) {
+        final Category createdCategory = categoryService.createCategory(category);
         return createdCategory != null ? ResponseEntity.status(201).body(createdCategory) : ResponseEntity.notFound().build();
     }
 
     // PUT endpoint to update an existing category by UUID, 404 if not found
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategoryById(@PathVariable UUID id, @Valid @RequestBody Category category) {
-        Category updatedCategory = categoryService.updateCategoryById(id, category);
+    public ResponseEntity<Category> updateCategoryById(@PathVariable final UUID id, @Valid @RequestBody final Category category) {
+        final Category updatedCategory = categoryService.updateCategoryById(id, category);
         return updatedCategory != null ? ResponseEntity.ok(updatedCategory) : ResponseEntity.notFound().build();
     }
 
     // DELETE endpoint to remove a category by UUID, returns 204 No Content on success
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoryById(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCategoryById(@PathVariable final UUID id) {
         categoryService.deleteCategoryById(id);
         return ResponseEntity.noContent().build();
     }

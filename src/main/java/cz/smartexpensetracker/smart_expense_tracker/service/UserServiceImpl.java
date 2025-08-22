@@ -12,13 +12,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(final UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     // Saves a new user to the database
     @Override
-    public User createUser(User user) {
+    public User createUser(final User user) {
         return userRepository.save(user);
     }
 
@@ -30,19 +30,19 @@ public class UserServiceImpl implements UserService {
 
     // Finds a user by their unique ID, returns null if not found
     @Override
-    public User getUserById(UUID id) {
+    public User getUserById(final UUID id) {
         return userRepository.findById(id).orElse(null);
     }
 
     // Deletes a user by their ID
     @Override
-    public void deleteUserById(UUID id) {
+    public void deleteUserById(final UUID id) {
         userRepository.deleteById(id);
     }
 
     // Updates an existing user's username, returns null if user not found
     @Override
-    public User updateUserById(UUID id, User updatedUser) {
+    public User updateUserById(final UUID id, final User updatedUser) {
         return userRepository.findById(id)
                 .map(existing -> {
                     existing.setUsername(updatedUser.getUsername());

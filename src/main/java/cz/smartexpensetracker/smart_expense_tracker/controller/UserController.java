@@ -17,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     // Constructor injection of UserService
-    public UserController(UserService userService) {
+    public UserController(final UserService userService) {
         this.userService = userService;
     }
 
@@ -29,28 +29,28 @@ public class UserController {
 
     // GET endpoint to get a user by UUID, returns 404 if not found
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
-        User user = userService.getUserById(id);
+    public ResponseEntity<User> getUserById(@PathVariable final UUID id) {
+        final User user = userService.getUserById(id);
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
     // POST endpoint to create a new user
     @PostMapping
-    public ResponseEntity<User> addUser(@Valid @RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<User> addUser(@Valid @RequestBody final User user) {
+        final User createdUser = userService.createUser(user);
         return ResponseEntity.status(201).body(createdUser);
     }
 
     // PUT endpoint to update an existing user by UUID
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUserById(@PathVariable UUID id, @Valid @RequestBody User user) {
-        User updatedUser = userService.updateUserById(id, user);
+    public ResponseEntity<User> updateUserById(@PathVariable final UUID id, @Valid @RequestBody final User user) {
+        final User updatedUser = userService.updateUserById(id, user);
         return updatedUser != null ? ResponseEntity.ok(updatedUser) : ResponseEntity.notFound().build();
     }
 
     // DELETE endpoint to delete a user by UUID
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUserById(@PathVariable UUID id) {
+    public ResponseEntity<User> deleteUserById(@PathVariable final UUID id) {
         userService.deleteUserById(id);
         return ResponseEntity.ok().build();
     }

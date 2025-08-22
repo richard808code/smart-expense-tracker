@@ -62,6 +62,8 @@ For example: **Budget:** Weekend BBQ, **Category:** Food
 4. **Open it in you browser at:**
    [Smart Expense Tracker](http://localhost:63342/smart-expense-tracker/static/startbootstrap-sb-admin-2-gh-pages/index.html?_ijt=64um946662jl3tu6mc1rgrmlb6&_ij_reload=RELOAD_ON_SAVE)
 
+   *If you rename the source directory, you have to replace the name in the URL
+   with the name you have chosen.
 
 5. **Edit the test User to your liking.**
 
